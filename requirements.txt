@@ -1,0 +1,6 @@
+Django~=5.0.6
+langchain ~=0.2.1
+langchain-core~=0.2.1
+langchain-community~=0.2.1
+langchain-experimental~=0.0.59
+langchain-openai~=0.1.7
