@@ -28,7 +28,7 @@ chain = runnable.RunnableLambda(detect_language) | (
     lambda x: anonymizer.anonymize(x["text"], language=x["language"])
 )
 
-data = chain.invoke("我叫刘艳群，今年25岁，来自韩国")
+data = chain.invoke("我叫刘艳群")
 print(anonymizer.anonymizer_mapping)
 # anonymizer.save_deanonymizer_mapping("deanonymizer_mapping.json")
 anonymizer.load_deanonymizer_mapping("deanonymizer_mapping.json")
