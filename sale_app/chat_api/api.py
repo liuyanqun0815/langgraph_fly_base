@@ -1,7 +1,6 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-import logging
 
 from sale_app.config.log import Logger
 
