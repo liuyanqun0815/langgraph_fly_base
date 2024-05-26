@@ -1,9 +1,11 @@
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
 
-logger = logging.getLogger(__name__)
+from sale_app.config.log import Logger
+
+logger = Logger("fly_base")
 
 
 @csrf_exempt
@@ -13,5 +15,5 @@ def to_chat(request):
     except json.JSONDecodeError:
         return HttpResponse({"message": "Invalid JSON body"})
 
-    logger.info("请求参数：{}".format(body))
+    logger.info(f"请求参数：{body}")
     return HttpResponse({"message": "Hello, world!"})
