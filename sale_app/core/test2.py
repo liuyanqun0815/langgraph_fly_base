@@ -5,6 +5,7 @@ from langchain.schema import runnable
 
 
 import fasttext
+
 from langchain_experimental.data_anonymizer import PresidioReversibleAnonymizer
 
 model = fasttext.load_model("load_model/lid.176.ftz")
