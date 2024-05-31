@@ -1,35 +1,29 @@
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+from sale_app.core.moudel.zhipuai import ZhipuAI
 
 
-import langdetect
-from langchain.schema import runnable
+# 问题修正节点
+def fix_question():
+    """
+    根据上下文，重新构造问题
+    """
+    contextualize_q_system_prompt = """Given a chat history and the latest user question \
+    which might reference context in the chat history, formulate a standalone question \
+    which can be understood without the chat history. Do NOT answer the question, \
+    just reformulate it if needed and otherwise return it as is"""
+    contextualize_q_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", contextualize_q_system_prompt),
+            MessagesPlaceholder("messages"),
+            # ("human", "{question}"),
+        ]
+    )
+    llm = ZhipuAI().openai_chat()
+    return contextualize_q_prompt | llm
+    # return chain.invoke({"input": question})
 
 
-import fasttext
-
-from langchain_experimental.data_anonymizer import PresidioReversibleAnonymizer
-
-model = fasttext.load_model("load_model/lid.176.ftz")
-
-nlp_config = {
-    "nlp_engine_name": "spacy",
-    "models": [
-        {"lang_code": "en", "model_name": "en_core_web_md"},
-        {"lang_code": "zh", "model_name": "zh_core_web_sm"},
-    ],
-}
-anonymizer = PresidioReversibleAnonymizer(
-    analyzed_fields=["PERSON","PHONE_NUMBER","EMAIL_ADDRESS","LOCATION"],
-    languages_config=nlp_config,
-)
-
-def detect_language(text: str) -> dict:
-    language = model.predict(text)[0][0].replace("__label__", "")
-    print(language)
-    return {"text": text, "language": language}
-
-
-chain = runnable.RunnableLambda(detect_language) | (
-    lambda x: anonymizer.anonymize(x["text"], language=x["language"])
-)
-
-print(chain.invoke("我叫刘艳群,我的电话15313242351,在北京工作"))
+fix = fix_question()
+data = fix.invoke({"messages": [{"role": "user", "content": "my name is liuyanqun"}]})
+print(data)
