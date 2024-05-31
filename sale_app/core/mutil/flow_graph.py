@@ -10,6 +10,7 @@ from langgraph.graph import StateGraph, END
 
 from sale_app.core.mutil.fix_question import fix_question
 from sale_app.core.mutil.question_router import create_team_supervisor
+from sale_app.core.moudel.zhipuai import ZhipuAI
 
 llm = ZhipuAI().openai_chat()
 
