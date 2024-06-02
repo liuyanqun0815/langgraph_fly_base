@@ -22,6 +22,8 @@ anonymizer = PresidioReversibleAnonymizer(
 def detect_language(text: str) -> dict:
     language = model.predict(text)[0][0].replace("__label__", "")
     print(language)
+    if language is None or language != "en":
+        language = "zh"
     return {"text": text, "language": language}
 
 
