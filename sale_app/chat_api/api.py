@@ -25,5 +25,8 @@ def to_chat(request):
     else:
         threadId = generate_random_string(11)
         cache.set(session_id, threadId)
-    flow_control(chat, threadId)
-    return HttpResponse({"message": "Hello, world!"})
+    data = flow_control(chat, threadId)
+    reps = {
+        "data": data
+    }
+    return JsonResponse(reps)

@@ -1,14 +1,17 @@
+from langchain_core.messages import AIMessage
+
 from sale_app.config.log import Logger
 from sale_app.core.mutil.flow_graph import run_flow
 from sale_app.core.pre_safety import pre_handle
 from sale_app.core.sensitive_info import sensitive_info_anonymize
+from langchain.globals import set_verbose
 
-thread = {"configurable": {"thread_id": "4"}}
+# thread = {"configurable": {"thread_id": "4"}}
 logger = Logger("fly_base")
 
-
+set_verbose(True)
 # 流程控制
-def flow_control(question: str, sessionId: str):
+def flow_control(question: str, sessionId: str)->str:
     # 前置安全校验
     pre_data = pre_handle(question)
     if pre_data:
@@ -22,5 +25,9 @@ def flow_control(question: str, sessionId: str):
             "thread_id": sessionId
         }
     }
-    run_flow(question, configurable)
-    return question
+    meessage = run_flow(question, configurable)
+    last_message = meessage["messages"][-1]
+    if isinstance(last_message,AIMessage):
+        logger.info(f"返回结果:{last_message.content}")
+        return last_message.content
+    return meessage["messages"][-2].content

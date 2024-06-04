@@ -11,4 +11,4 @@ langdetect
 presidio-anonymizer
 presidio-analyzer
 Faker
-fasttext
+#fasttext
