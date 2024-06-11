@@ -11,7 +11,18 @@ from sale_app.core.moudel.zhipuai import ZhipuAI
 class FixedQuestion(BaseModel):
     """重构最新问题"""
     fixQuestion: str = Field(..., deault=None, title="最新问题",
-                         description="使用大模型结合聊天记录，经过大模型修正后的最新问题")
+                             description="使用大模型结合聊天记录，经过大模型修正后的最新问题")
+
+
+def fixed_question_node(state, agent):
+    messages = state["messages"]
+    last_message = messages[-1]
+    # 如果是客户提问，就修正问题
+    state["history"] = messages[:-1]
+    if isinstance(last_message, HumanMessage):
+        state["question"] = last_message.content
+    result = agent.invoke(state)
+    return {"fixed_question": result.fixQuestion}
 
 
 # 问题修正节点
@@ -83,7 +94,6 @@ def fix_question(llm: BaseChatModel):
         history=lambda x: format_docs(x.get('history', [])),
         question=lambda x: x['question']  # 直接传递 question 参数
     ) | contextualize_q_prompt | llm.with_structured_output(FixedQuestion)
-    # return chain.invoke({"input": question})
 
 
 def format_docs(docs):
@@ -103,9 +113,10 @@ data = fix.invoke({"question": "最近有点缺钱",
 
                    "history": [
                        HumanMessage(content='你好'),
-                               AIMessage(content='您好！很高兴为您服务。如果您有任何贷款需求或对贷款产品有任何疑问，请随时告诉我，我会根据您的具体情况为您推荐合适的产品。玩笑归玩笑，但我是真心希望能帮到您。那么，您是否真的有贷款方面的需求呢？我们可以从这里开始探讨。')
+                       AIMessage(
+                           content='您好！很高兴为您服务。如果您有任何贷款需求或对贷款产品有任何疑问，请随时告诉我，我会根据您的具体情况为您推荐合适的产品。玩笑归玩笑，但我是真心希望能帮到您。那么，您是否真的有贷款方面的需求呢？我们可以从这里开始探讨。')
 
-                               ]
+                   ]
                    }
                   )
 print(data)

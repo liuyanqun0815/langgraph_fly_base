@@ -8,23 +8,13 @@ from langchain_core.messages import BaseMessage, AIMessage, ToolMessage, HumanMe
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import StateGraph, END
 
-from sale_app.core.agent.information_gathering import information_node, information_gathering
+from sale_app.core.agent.information_gathering_test import information_node, information_gathering
 from sale_app.core.agent.other_agent import chat_manager
-from sale_app.core.mutil.fix_question import fix_question
+from sale_app.core.mutil.fix_question import fix_question, fixed_question_node
 from sale_app.core.mutil.question_router import create_team_supervisor
 from sale_app.core.moudel.zhipuai import ZhipuAI
 
 llm = ZhipuAI().openai_chat()
-
-
-def fixed_question_node(state, agent):
-    messages = state["messages"]
-    last_message = messages[-1]
-    # 如果是客户提问，就修正问题
-    if isinstance(last_message, HumanMessage):
-        state["question"] = last_message.content
-    result = agent.invoke(state)
-    return {"new_question": result.content}
 
 
 def agent_node(state, agent):
@@ -60,11 +50,6 @@ def super_agent_node(state, agent):
     }
 
 
-# def add_unique_element(lst, seq):
-#     if seq not in lst:
-#         lst.append(seq)
-
-
 class FlowState(TypedDict):
     # 消息列表
     messages: Annotated[List[BaseMessage], operator.add]
@@ -75,9 +60,11 @@ class FlowState(TypedDict):
     # 问题
     question: str
     # 新问题
-    new_question: str
-    # 信息收集列表
-    cur_information: str
+    fixed_question: str
+    # 聊天历史
+    history: list
+    # 信息收集序号列表
+    information_sequences: list
     # 产品列表
     product_list: list
 
@@ -86,12 +73,8 @@ super = create_team_supervisor(llm, ["信息收集"])
 
 supervisor_node = functools.partial(super_agent_node, agent=super)
 
-fixed_node = functools.partial(
-    fixed_question_node, agent=fix_question(llm)
-)
-
 flow_graph = StateGraph(FlowState)
-flow_graph.add_node("问题修复", fixed_node)
+flow_graph.add_node("问题修复", functools.partial(fixed_question_node, agent=fix_question(llm)))
 flow_graph.add_node("问题分类", supervisor_node)
 flow_graph.add_node("闲聊经理", functools.partial(agent_node, agent=chat_manager(llm)))
 flow_graph.add_node("信息收集", functools.partial(information_node, agent=information_gathering(llm)))
