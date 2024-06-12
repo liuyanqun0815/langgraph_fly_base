@@ -5,19 +5,20 @@ class Logger:
     def __init__(self, name):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.DEBUG)
-        # 输出到控制台
-        console = logging.StreamHandler()
-        console.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        console.setFormatter(formatter)
-        # logging.getLogger('').addHandler(console)
-        self.logger.addHandler(console)
+        if not self.logger.hasHandlers():
+            # 输出到控制台
+            console = logging.StreamHandler()
+            console.setLevel(logging.INFO)
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            console.setFormatter(formatter)
+            # logging.getLogger('').addHandler(console)
+            self.logger.addHandler(console)
 
-        # file_handler = logging.FileHandler(f"{name}.log")
-        # formatter = logging.Formatter("%(asctime)s - %(lineno)d -%(levelname)s - %(message)s")
-        # file_handler.setFormatter(formatter)
-        #
-        # self.logger.addHandler(file_handler)
+            # file_handler = logging.FileHandler(f"{name}.log")
+            # formatter = logging.Formatter("%(asctime)s - %(lineno)d -%(levelname)s - %(message)s")
+            # file_handler.setFormatter(formatter)
+            #
+            # self.logger.addHandler(file_handler)
 
     def debug(self, message):
         self.logger.debug(message)

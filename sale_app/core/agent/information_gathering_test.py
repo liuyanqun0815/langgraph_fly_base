@@ -69,11 +69,11 @@ def information_gathering(llm: BaseChatModel):
     return prompt | llm.with_structured_output(toBeCollectionInformation)
 
 
-def information_node(state, agent):
+def information_node(state, agent, name):
     result = agent.invoke(state)
     if result:
         return {"messages": [AIMessage(content=result.content)], "cur_information": result.content,
-                "pre_node": "信息收集"}
+                "pre_node": name}
     else:
         print("信息收集返回为空")
 #

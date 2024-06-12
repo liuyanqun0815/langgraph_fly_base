@@ -8,7 +8,8 @@ from langchain_core.messages import BaseMessage, AIMessage, ToolMessage, HumanMe
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import StateGraph, END
 
-from sale_app.core.agent.information_gathering_test import information_node, information_gathering
+from sale_app.core.agent.information_gathering import information_node, information_gathering
+from sale_app.core.agent.intention_confirm import intention_confirm, intention_node
 from sale_app.core.agent.other_agent import chat_manager
 from sale_app.core.mutil.fix_question import fix_question, fixed_question_node
 from sale_app.core.mutil.question_router import create_team_supervisor
@@ -18,6 +19,7 @@ llm = ZhipuAI().openai_chat()
 
 
 def agent_node(state, agent):
+    # state["messages"] = state["messages"][:-1]
     result = agent.invoke(state)
     return {"messages": [AIMessage(content=result.content)]}
 
@@ -44,7 +46,10 @@ def super_agent_node(state, agent):
             if match:
                 name = match.group(1)
             else:
-                name = state["pre_node"]
+                name = state["pre_node"] if state["pre_node"] else "闲聊经理"
+        messages.append(result)
+    else:
+        messages.append(result)
     return {
         "next": name,
     }
@@ -64,12 +69,12 @@ class FlowState(TypedDict):
     # 聊天历史
     history: list
     # 信息收集序号列表
-    information_sequences: list
+    information_sequences: Annotated[list, operator.add]
     # 产品列表
     product_list: list
 
 
-super = create_team_supervisor(llm, ["信息收集"])
+super = create_team_supervisor(llm, ["信息收集", "闲聊经理", "意图确认"])
 
 supervisor_node = functools.partial(super_agent_node, agent=super)
 
@@ -77,8 +82,29 @@ flow_graph = StateGraph(FlowState)
 flow_graph.add_node("问题修复", functools.partial(fixed_question_node, agent=fix_question(llm)))
 flow_graph.add_node("问题分类", supervisor_node)
 flow_graph.add_node("闲聊经理", functools.partial(agent_node, agent=chat_manager(llm)))
-flow_graph.add_node("信息收集", functools.partial(information_node, agent=information_gathering(llm)))
+flow_graph.add_node("意图确认", functools.partial(intention_node, agent=intention_confirm(llm), name="意图确认"))
+flow_graph.add_node("信息收集", functools.partial(information_node, agent=information_gathering(llm), name="信息收集"))
 flow_graph.add_edge("问题修复", "问题分类")
+
+
+def decide_router(state):
+    if state.get("next") == "产品问答":
+        return "产品问答"
+    elif state.get('pre_node') == "信息收集" and state.get("next") != "产品问答":
+        return "信息收集"
+    else:
+        return state.get('next')
+
+
+flow_graph.add_conditional_edges("问题分类", decide_router, {
+    "闲聊经理": "闲聊经理",
+    "意图确认": "意图确认",
+    "信息收集": "信息收集",
+})
+flow_graph.add_conditional_edges("意图确认", lambda x: x["next"], {
+    "信息收集": "信息收集",
+    "闲聊经理": "闲聊经理",
+})
 
 for node in list(flow_graph.nodes.keys()):
     flow_graph.add_edge(node, END)
@@ -86,7 +112,7 @@ for node in list(flow_graph.nodes.keys()):
 conditional_map = {k: k for k in list(flow_graph.nodes.keys())}
 conditional_map["FINISH"] = END
 
-flow_graph.add_conditional_edges("问题分类", lambda x: x["next"], conditional_map)
+# flow_graph.add_conditional_edges("问题分类", lambda x: x["next"], conditional_map)
 
 flow_graph.set_entry_point("问题修复")
 memory = SqliteSaver.from_conn_string("chat_history.db")

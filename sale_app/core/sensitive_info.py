@@ -4,6 +4,9 @@ import fasttext
 
 from langchain_experimental.data_anonymizer import PresidioReversibleAnonymizer
 
+from sale_app.config.log import Logger
+
+logger = Logger("fly_base")
 model = fasttext.load_model("load_model/lid.176.ftz")
 
 nlp_config = {
@@ -21,9 +24,9 @@ anonymizer = PresidioReversibleAnonymizer(
 
 def detect_language(text: str) -> dict:
     language = model.predict(text)[0][0].replace("__label__", "")
-    print(language)
     if language is None or language != "en":
         language = "zh"
+        logger.info(f"detect language: {language}")
     return {"text": text, "language": language}
 
 

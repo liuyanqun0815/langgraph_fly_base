@@ -6,6 +6,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.pydantic_v1 import BaseModel, Field
 
 from sale_app.core.moudel.zhipuai import ZhipuAI
+from sale_app.util.history_formate import format_docs
 
 
 class FixedQuestion(BaseModel):
@@ -96,27 +97,18 @@ def fix_question(llm: BaseChatModel):
     ) | contextualize_q_prompt | llm.with_structured_output(FixedQuestion)
 
 
-def format_docs(docs):
-    data = ""
-    for doc in docs:
-        if doc.type == "ai":
-            data += f"\n AI助理:{doc.content}"
-        else:
-            data += f"\n 用户:{doc.content}"
-    return data
 
-
-llm = ZhipuAI().openai_chat()
+# llm = ZhipuAI().openai_chat()
+# #
+# fix = fix_question(llm)
+# data = fix.invoke({"question": "最近有点缺钱",
 #
-fix = fix_question(llm)
-data = fix.invoke({"question": "最近有点缺钱",
-
-                   "history": [
-                       HumanMessage(content='你好'),
-                       AIMessage(
-                           content='您好！很高兴为您服务。如果您有任何贷款需求或对贷款产品有任何疑问，请随时告诉我，我会根据您的具体情况为您推荐合适的产品。玩笑归玩笑，但我是真心希望能帮到您。那么，您是否真的有贷款方面的需求呢？我们可以从这里开始探讨。')
-
-                   ]
-                   }
-                  )
-print(data)
+#                    "history": [
+#                        HumanMessage(content='你好'),
+#                        AIMessage(
+#                            content='您好！很高兴为您服务。如果您有任何贷款需求或对贷款产品有任何疑问，请随时告诉我，我会根据您的具体情况为您推荐合适的产品。玩笑归玩笑，但我是真心希望能帮到您。那么，您是否真的有贷款方面的需求呢？我们可以从这里开始探讨。')
+#
+#                    ]
+#                    }
+#                   )
+# print(data)

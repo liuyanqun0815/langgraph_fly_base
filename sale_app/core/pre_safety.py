@@ -10,9 +10,14 @@ def pre_handle(question: str) -> dict | None:
         Classification
     )
     tagging_chain = tagging_prompt | model
-    obj = tagging_chain.invoke({"input": question})
-    # 遍历对象的属性
-    return cicile_attribute(obj)
+    try:
+        obj = tagging_chain.invoke({"input": question})
+        logger.info("敏感信息过滤:{}".format(obj))
+        # 遍历对象的属性
+        return cicile_attribute(obj)
+    except Exception as e:
+        logger.error(e)
+        return e.body.get("message")
 
 
 from langchain_core.prompts import ChatPromptTemplate
@@ -87,6 +92,6 @@ def cicile_attribute(obj: Classification) -> str | None:
 # LLM
 
 
-if __name__ == '__main__':
-    d = pre_handle("美国文化是垃圾")
-    print(d)
+# if __name__ == '__main__':
+#     d = pre_handle("美国文化是垃圾")
+#     print(d)

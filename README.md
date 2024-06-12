@@ -5,6 +5,14 @@
 方案设计:
 ![langchain.drawio.png](docs%2Flangchain.drawio.png)
 
+**项目使用的web框架：django**
+
+**日志框架：logging**
+
+**langchain监控框架：langsimith**
+
+
+
 项目目前开发过程中,每天都会进行更新
 
 步骤:
