@@ -22,3 +22,10 @@
 4. pip install -r requirements
 如果按照fasttext失败,手动安装
 5. pip install /load_model/fasttext_wheel-0.9.2-cp311-cp311-win_amd64.whl
+6. 数据库表迁移\
+`python manage.py makemigrations sale_app`\
+`python manage.py migrate sale_app`
+7. 默认数据导入\
+`python import_data_to_sqlite.py`
+8. 启动项目\
+`python manage.py runserver`

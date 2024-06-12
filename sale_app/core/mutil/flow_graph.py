@@ -1,6 +1,7 @@
 import functools
 import json
 import operator
+import os
 import re
 from typing import TypedDict, Annotated, List
 
@@ -24,8 +25,8 @@ def agent_node(state, agent):
     return {"messages": [AIMessage(content=result.content)]}
 
 
-def super_agent_node(state, agent):
-    name = "FINISH"
+def super_agent_node(state, agent, name):
+    # name = "FINISH"
     messages = state["messages"]
     last_message = messages[-1]
     if isinstance(last_message, AIMessage):
@@ -47,9 +48,9 @@ def super_agent_node(state, agent):
                 name = match.group(1)
             else:
                 name = state["pre_node"] if state["pre_node"] else "闲聊经理"
-        messages.append(result)
-    else:
-        messages.append(result)
+        # messages.append(result)
+    # else:
+    # messages.append(result)
     return {
         "next": name,
     }
@@ -72,18 +73,24 @@ class FlowState(TypedDict):
     information_sequences: Annotated[list, operator.add]
     # 产品列表
     product_list: list
+    # 是否推荐产品
+    isRecommend: bool
 
 
 super = create_team_supervisor(llm, ["信息收集", "闲聊经理", "意图确认"])
 
-supervisor_node = functools.partial(super_agent_node, agent=super)
+supervisor_node = functools.partial(super_agent_node, agent=super, name="问题分类")
 
 flow_graph = StateGraph(FlowState)
 flow_graph.add_node("问题修复", functools.partial(fixed_question_node, agent=fix_question(llm)))
 flow_graph.add_node("问题分类", supervisor_node)
+
 flow_graph.add_node("闲聊经理", functools.partial(agent_node, agent=chat_manager(llm)))
 flow_graph.add_node("意图确认", functools.partial(intention_node, agent=intention_confirm(llm), name="意图确认"))
 flow_graph.add_node("信息收集", functools.partial(information_node, agent=information_gathering(llm), name="信息收集"))
+# 添加一个子链
+# flow_graph.add_node("产品推荐", functools.partial(information_node, agent=information_gathering(llm), name="产品推荐"))
+
 flow_graph.add_edge("问题修复", "问题分类")
 
 
@@ -106,16 +113,35 @@ flow_graph.add_conditional_edges("意图确认", lambda x: x["next"], {
     "闲聊经理": "闲聊经理",
 })
 
+
+def information_router(state):
+    if state.get("isRecommend"):
+        return "产品推荐"
+    else:
+        return state.get('next')
+
+
 for node in list(flow_graph.nodes.keys()):
     flow_graph.add_edge(node, END)
 
-conditional_map = {k: k for k in list(flow_graph.nodes.keys())}
-conditional_map["FINISH"] = END
+flow_graph.add_conditional_edges("信息收集", information_router, {
+    "FINISH": END,
+    # "产品推荐": "产品推荐",
+})
+
+# for node in list(flow_graph.nodes.keys()):
+#     flow_graph.add_edge(node, END)
+#
+# conditional_map = {k: k for k in list(flow_graph.nodes.keys())}
+# conditional_map["FINISH"] = END
 
 # flow_graph.add_conditional_edges("问题分类", lambda x: x["next"], conditional_map)
 
 flow_graph.set_entry_point("问题修复")
-memory = SqliteSaver.from_conn_string("chat_history.db")
+
+current_file_path = os.path.abspath(__file__)
+current_dir_path = os.path.dirname(current_file_path)
+memory = SqliteSaver.from_conn_string(current_dir_path+"/chat_history.db")
 chain = flow_graph.compile(
     checkpointer=memory,
 )

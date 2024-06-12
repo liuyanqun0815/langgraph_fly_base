@@ -77,24 +77,26 @@ def information_node(state, agent, name):
     else:
         print("信息收集返回为空")
 #
-# llm = ZhipuAI().openai_chat()
-# chain = information_gathering(llm)
-# prompt = ChatPromptTemplate.from_messages(
-#         [
-#             ("system", SYSTEM_PROMPT),
-#             # ("placeholder", "{examples}"),
-#             # ("placeholder", "{messages}"),
-#             MessagesPlaceholder(variable_name="messages"),
-#             # ("human", "{input}"),
-#         ]
-#     )
-# data = chain.invoke({"messages": [HumanMessage(content="你好"),
-#                                   AIMessage(content="你打算用这笔贷款做什么？"),
-#                                   HumanMessage(content="买车"),
-#                                   AIMessage(content="你打算贷款多少钱?"),
-#                                   HumanMessage(content="13w")
-#                                   ],
-#                      }
+
+# if __name__ == '__main__':
+#     llm = ZhipuAI().openai_chat()
+#     chain = information_gathering(llm)
+#     prompt = ChatPromptTemplate.from_messages(
+#             [
+#                 ("system", SYSTEM_PROMPT),
+#                 # ("placeholder", "{examples}"),
+#                 # ("placeholder", "{messages}"),
+#                 MessagesPlaceholder(variable_name="messages"),
+#                 # ("human", "{input}"),
+#             ]
+#         )
+#     data = chain.invoke({"messages": [HumanMessage(content="你好"),
+#                                       AIMessage(content="你打算用这笔贷款做什么？"),
+#                                       HumanMessage(content="买车"),
+#                                       AIMessage(content="你打算贷款多少钱?"),
+#                                       HumanMessage(content="13w")
+#                                       ],
+#                          }
 #
-#                     )
-# print(data)
+#                         )
+#     print(data)

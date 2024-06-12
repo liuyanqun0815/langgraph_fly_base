@@ -24,7 +24,7 @@ def create_team_supervisor(llm: BaseChatModel, members):
             # (
             #     "system",
             #     """鉴于上述对话，, 接下来应该由谁来执行下一步动作?
-            #       如果工作人员回复了客户问题时，我们下一步应该FINISH ，选择以下一项：{options}"""
+            #       选择以下一项：{options}"""
             # ),
         ]
     ).partial(options=str(options), team_members=", ".join(members))
