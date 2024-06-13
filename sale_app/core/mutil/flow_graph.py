@@ -100,6 +100,8 @@ flow_graph.add_edge("问题修复", "问题分类")
 def decide_router(state):
     if state.get("next") == "产品问答":
         return "产品问答"
+    if state.get("next") == "产品推荐":
+        return state.get('next')
     elif state.get('pre_node') == "信息收集" and state.get("next") != "产品问答":
         return "信息收集"
     else:
@@ -147,10 +149,7 @@ flow_graph.set_entry_point("问题修复")
 chain = flow_graph.compile(
     checkpointer=memory,
 )
-
+# chain.get_graph().draw_png(output_file_path="grap.png", fontname="SimHei")
 
 def run_flow(question: str, config: dict) -> FlowState:
     return chain.invoke({"messages": [HumanMessage(content=question)]}, config)
-
-# flow_graph.add_node("客户意愿确认专家", verify_idea_node)
-# flow_graph.add_node("贷款产品推荐官", recommend_node)
