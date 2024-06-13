@@ -15,10 +15,13 @@ from sale_app.core.agent.other_agent import chat_manager
 from sale_app.core.mutil.fix_question import fix_question, fixed_question_node
 from sale_app.core.mutil.question_router import create_team_supervisor
 from sale_app.core.moudel.zhipuai import ZhipuAI
+from sale_app.core.mutil.recommend_product_graph import re_graph
 
 llm = ZhipuAI().openai_chat()
 
-
+current_file_path = os.path.abspath(__file__)
+current_dir_path = os.path.dirname(current_file_path)
+memory = SqliteSaver.from_conn_string(current_dir_path + "/chat_history.db")
 def agent_node(state, agent):
     # state["messages"] = state["messages"][:-1]
     result = agent.invoke(state)
@@ -77,7 +80,7 @@ class FlowState(TypedDict):
     isRecommend: bool
 
 
-super = create_team_supervisor(llm, ["信息收集", "闲聊经理", "意图确认"])
+super = create_team_supervisor(llm, ["信息收集", "闲聊经理", "意图确认", "产品推荐"])
 
 supervisor_node = functools.partial(super_agent_node, agent=super, name="问题分类")
 
@@ -89,7 +92,7 @@ flow_graph.add_node("闲聊经理", functools.partial(agent_node, agent=chat_man
 flow_graph.add_node("意图确认", functools.partial(intention_node, agent=intention_confirm(llm), name="意图确认"))
 flow_graph.add_node("信息收集", functools.partial(information_node, agent=information_gathering(llm), name="信息收集"))
 # 添加一个子链
-# flow_graph.add_node("产品推荐", functools.partial(information_node, agent=information_gathering(llm), name="产品推荐"))
+flow_graph.add_node("产品推荐", re_graph.compile())
 
 flow_graph.add_edge("问题修复", "问题分类")
 
@@ -107,6 +110,7 @@ flow_graph.add_conditional_edges("问题分类", decide_router, {
     "闲聊经理": "闲聊经理",
     "意图确认": "意图确认",
     "信息收集": "信息收集",
+    "产品推荐": "产品推荐",
 })
 flow_graph.add_conditional_edges("意图确认", lambda x: x["next"], {
     "信息收集": "信息收集",
@@ -118,7 +122,7 @@ def information_router(state):
     if state.get("isRecommend"):
         return "产品推荐"
     else:
-        return state.get('next')
+        return "FINISH"
 
 
 for node in list(flow_graph.nodes.keys()):
@@ -126,7 +130,7 @@ for node in list(flow_graph.nodes.keys()):
 
 flow_graph.add_conditional_edges("信息收集", information_router, {
     "FINISH": END,
-    # "产品推荐": "产品推荐",
+    "产品推荐": "产品推荐",
 })
 
 # for node in list(flow_graph.nodes.keys()):
@@ -139,9 +143,7 @@ flow_graph.add_conditional_edges("信息收集", information_router, {
 
 flow_graph.set_entry_point("问题修复")
 
-current_file_path = os.path.abspath(__file__)
-current_dir_path = os.path.dirname(current_file_path)
-memory = SqliteSaver.from_conn_string(current_dir_path+"/chat_history.db")
+
 chain = flow_graph.compile(
     checkpointer=memory,
 )

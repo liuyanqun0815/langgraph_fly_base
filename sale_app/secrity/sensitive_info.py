@@ -21,7 +21,7 @@ anonymizer = PresidioReversibleAnonymizer(
     languages_config=nlp_config,
 )
 
-anonymizer.load_deanonymizer_mapping("deanonymizer_mapping.json")
+# anonymizer.load_deanonymizer_mapping("deanonymizer_mapping.json")
 
 
 def detect_language(text: str) -> dict:
