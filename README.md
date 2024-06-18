@@ -34,9 +34,16 @@
 `python manage.py migrate sale_app`
 7. 默认数据导入\
 `python import_data_to_sqlite.py`
-8. 启动项目\
+8. 向量数据库创建(通过docker启动)\
+进入到docker目录下 \
+```shell
+cd docker
+docker-compose -f docker-compose.qdrant.yaml -p fly up -d
+```
+9. 启动项目\
 `python manage.py runserver`
 
 
-更新日志：
-1. 2023-06-18: 添加支持xlsx格式文件导入，导入QA文档
+## 更新日志：
+1. 2024-06-17: 添加支持xlsx格式文件导入，导入QA文档
+2. 2024-06-18: 添加向量数据库支持（qdrant，docker部署）
