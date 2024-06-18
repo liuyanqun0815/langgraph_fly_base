@@ -18,8 +18,10 @@ from django.contrib import admin
 from django.urls import path
 
 from sale_app.chat_api.api import to_chat
+from sale_app.chat_api.kb_api import upload_file
 
 urlpatterns = [
     # path("admin/", admin.site.urls),
     path("api/chat", to_chat),
+    path('upload', upload_file),
 ]

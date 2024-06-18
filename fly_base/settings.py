@@ -127,3 +127,8 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+# 文件的URL
+MEDIA_URL = '/kb_file/'
+
+# 媒体文件存储的根目录
+KB_FILE_ROOT = os.path.join(BASE_DIR, 'kb_file/')

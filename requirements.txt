@@ -12,3 +12,5 @@ presidio-anonymizer
 presidio-analyzer
 Faker
 #fasttext
+pandas
+openpyxl
