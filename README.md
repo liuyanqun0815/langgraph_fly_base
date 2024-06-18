@@ -36,3 +36,7 @@
 `python import_data_to_sqlite.py`
 8. 启动项目\
 `python manage.py runserver`
+
+
+更新日志：
+1. 2023-06-18: 添加支持xlsx格式文件导入，导入QA文档
