@@ -16,9 +16,9 @@ def qdrant_client(embeddings: Embeddings = None, collection_name: str = None) ->
     qdrant_config = QdrantConfig()
     client = _client()
     collection_name = collection_name or qdrant_config.collection_name
-    # 判断索引是否存在，不存在创建索引
-    if client.collection_exists(collection_name) is False:
-        create_collection(collection_name)
+    # 判断索引是否存在，不存在创建索引,发现调用索引是否存在404，暂时先不研究
+    # if client.collection_exists(collection_name=collection_name) is False:
+    #     create_collection(collection_name)
     zhipuEmbeddings = ZhipuAI()
     embeddings = embeddings or zhipuEmbeddings.embedding()
     return Qdrant(client, collection_name, embeddings)
@@ -68,9 +68,9 @@ def create_collection(collection_name: str = None):
     client = _client()
     # 创建集合，维度暂时固定1024，后面在通过传参遍历设置
     vectors_config = VectorParams(
-                        size=qdrant_config.vector_dimensions,
-                        distance=Distance.COSINE,
-                    )
+        size=qdrant_config.vector_dimensions,
+        distance=Distance.COSINE,
+    )
     client.create_collection(
         collection_name=collection_name,
         vectors_config=vectors_config,
