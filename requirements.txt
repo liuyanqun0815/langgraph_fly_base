@@ -12,3 +12,7 @@ presidio-anonymizer
 presidio-analyzer
 Faker
 #fasttext
+pandas
+openpyxl
+qdrant-client
+langchain_qdrant

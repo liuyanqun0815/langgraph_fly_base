@@ -18,8 +18,11 @@ from django.contrib import admin
 from django.urls import path
 
 from sale_app.chat_api.api import to_chat
+from sale_app.chat_api.kb_api import upload_file, create_index
 
 urlpatterns = [
     # path("admin/", admin.site.urls),
     path("api/chat", to_chat),
+    path('kb/upload', upload_file),
+    path('kb/create_index', create_index)
 ]

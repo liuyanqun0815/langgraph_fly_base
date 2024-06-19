@@ -33,9 +33,7 @@ SYSTEM_PROMPT = """
 1.询问客户贷款用途;
 2.询问客户贷款金额;
 3.询问客户贷款期限;
-4.询问客户贷款还款方式;
-5.询问客户年龄;
-6.询问客户是否有房产;
+4.询问客户年龄;
 
 检查用户是否回答完上述信息,结束则进行推荐产品
 
@@ -78,7 +76,8 @@ def information_node(state, agent,name):
     if result:
         return {"messages": [AIMessage(content=result.information)],
                 "information_sequences": [result.sequence],
-                "pre_node": name}
+                "pre_node": name,
+                "isRecommend": result.isRecommend}
     else:
         print("信息收集返回为空")
 
