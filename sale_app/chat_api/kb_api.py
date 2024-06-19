@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .forms import DocumentForm
 
 from ..config.log import Logger
+from ..core.kb.vector.qdrant_vector import create_collection
 from ..core.kb.xlsx_qa_view import xlsx_qa_upload
 
 logger = Logger("fly_base")
@@ -29,3 +30,11 @@ def upload_file(request):
         form = DocumentForm()
     return render(request, 'upload.html', {'form': form})
 
+
+@csrf_exempt
+def create_index(request):
+    collection_name = request.GET.get("collection_name")
+    if not collection_name:
+        return HttpResponse("collection_name is null")
+    create_collection(collection_name)
+    return HttpResponse("create index success")
