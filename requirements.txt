@@ -16,3 +16,4 @@ pandas
 openpyxl
 qdrant-client
 langchain_qdrant
+weaviate-client

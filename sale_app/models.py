@@ -14,3 +14,23 @@ class Product(models.Model):
 
     class Meta:
         verbose_name = "产品信息表"
+
+
+class Datasets(models.Model):
+    id = models.AutoField("主键Id", primary_key=True)
+    tenant_id = models.IntegerField("租户id", default=1)
+    dataset_name = models.CharField("数据集名称", max_length=16)
+    dataset_type = models.IntegerField("数据集类型", default=1)
+    dataset_info = models.CharField("数据集信息", max_length=256)
+    dataset_status = models.IntegerField("数据集状态", default=1)
+    embedding_model = models.CharField("embedding模型", max_length=16)
+    embedding_model_provider = models.CharField("embedding模型提供商", max_length=16)
+
+    dataset_create_time = models.DateTimeField("数据集创建时间", auto_now_add=True)
+    dataset_update_time = models.DateTimeField("数据集更新时间", auto_now=True)
+
+    class Meta:
+        verbose_name = "数据集信息表"
+
+    def __str__(self):
+        return self.dataset_name

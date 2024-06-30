@@ -27,5 +27,12 @@ class QdrantConfig:
         self.vector_dimensions = get_env('QDRANT_VECTOR_DIMENSIONS')
 
 
+class WeaviateConfig:
+
+    def __init__(self):
+        self.url = get_env('WEAVIATE_URL')
+        self.collection_name = get_env('WEAVIATE_COLLECTION_NAME')
+
+
 def get_env(key):
     return os.environ.get(key, DEFAULTS.get(key))

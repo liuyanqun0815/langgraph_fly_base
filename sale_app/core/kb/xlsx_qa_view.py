@@ -24,7 +24,6 @@ def xlsx_qa_upload(f):
     # 写入到向量库
     logger.info(f"文件内容:{file_docs}")
     qdrant = qdrant_client()
-
     # 将file_docs 转成List[Document]格式
     docs = [Document(page_content=doc['question'],
                      metadata={'question': doc['question'], 'answer': doc['answer']}) for doc in file_docs]
