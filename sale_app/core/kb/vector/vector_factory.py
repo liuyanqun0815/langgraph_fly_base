@@ -2,42 +2,44 @@ from abc import ABC, abstractmethod
 
 from langchain_core.embeddings import Embeddings
 
-from config import WeaviateConfig
+from config import  get_env
+
 from sale_app.core.kb.vector.vector_base import BaseVector
 from sale_app.core.kb.vector.vector_type import VectorType
-from sale_app.models import Datasets
+from sale_app.core.moudel.zhipuai import ZhipuAI
 
 
 class AbstractVectorFactory(ABC):
     @abstractmethod
-    def init_vector(self, dataset: Datasets, attributes: list, embeddings: Embeddings) -> BaseVector:
+    def init_vector(self, collection_name: str = None) -> BaseVector:
         raise NotImplementedError
 
+
+
+class Vector:
+    def __init__(self, collection_name: str = None):
+        self._collection_name = collection_name
+        self.vector_processor = self._init_vector()
+
+    def _init_vector(self) -> BaseVector:
+        vector_type = get_env('VECTOR_TYPE')
+
+        if not vector_type:
+            raise ValueError("向量存储类型未设置.")
+
+        vector_factory_cls = self.get_vector_factory(vector_type)
+        return vector_factory_cls().init_vector(self._collection_name)
+
     @staticmethod
-    def gen_index_struct_dict(vector_type: VectorType, collection_name: str) -> dict:
-        index_struct_dict = {
-            "type": vector_type,
-            "vector_store": {"class_prefix": collection_name}
-        }
-        return index_struct_dict
-
-
-class VectorFactory:
-
-    def __init__(self, vector_type: str = None,embeddings: Embeddings = None, collection_name: str = None):
-        #如果vector_type 为 weaviate 则创建weaviate_client
-
-        if vector_type == "weaviate":
-            weaviateConfig=WeaviateConfig()
-            import weaviate
-            # auth_client_secret = (weaviate.AuthApiKey(api_key=os.getenv("WEAVIATE_API_KEY")),)
-            client = weaviate.Client(
-                url=weaviateConfig.url,
-                # additional_headers={
-                #     "X-Openai-Api-Key": os.getenv("OPENAI_API_KEY"),
-                # },
-            )
-        # elif vector_type == "qdrant":
-
-
+    def get_vector_factory(vector_type: str) -> type[AbstractVectorFactory]:
+        match vector_type:
+            case VectorType.MILVUS:
+                from sale_app.core.kb.vector.milvus.milvus_vector import MilvusVectorFactory
+                return MilvusVectorFactory
+            # case VectorType.QDRANT:
+            #     return QdrantVectorFactory
+            # case VectorType.WEAVIATE:
+            #     return WeaviateVectorFactory
+            case _:
+                raise ValueError(f"不支持的向量存储类型: {vector_type} ")
 

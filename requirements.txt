@@ -17,3 +17,5 @@ openpyxl
 qdrant-client
 langchain_qdrant
 weaviate-client
+langchain_milvus
+pymilvus[model]

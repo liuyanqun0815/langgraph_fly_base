@@ -18,11 +18,16 @@ from django.contrib import admin
 from django.urls import path
 
 from sale_app.chat_api.api import to_chat
-from sale_app.chat_api.kb_api import upload_file, create_index
+from sale_app.chat_api.kb_api import upload_file, create_index, search, create_collection_api, upload_and_read_excel, \
+    hybrid_search
 
 urlpatterns = [
     # path("admin/", admin.site.urls),
     path("api/chat", to_chat),
     path('kb/upload', upload_file),
-    path('kb/create_index', create_index)
+    path('kb/create_index', create_index),
+    path('kb/search', search),
+    path('kb/create_collection', create_collection_api),
+    path('kb/upload_and_read_excel', upload_and_read_excel),
+    path('kb/hybrid_search', hybrid_search),
 ]

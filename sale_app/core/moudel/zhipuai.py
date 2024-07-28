@@ -22,6 +22,8 @@ class ZhipuAI:
         if temperature is None:
             self.temperature = os.environ.get("ZHIPU_TEMPERATURE")
 
+        self._embedding_dimensions = 1024
+
     def openai_chat(self) -> BaseChatModel:
         return ChatOpenAI(
             temperature=self.temperature,
@@ -36,6 +38,7 @@ class ZhipuAI:
             api_key=self.openai_api_key,
             model=self.model
         )
+
 
     def embedding(self):
         return ZhipuAIEmbeddings(api_key=self.openai_api_key)

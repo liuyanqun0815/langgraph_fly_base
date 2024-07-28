@@ -5,7 +5,9 @@ from langchain_core.documents import Document
 from fly_base.settings import KB_FILE_ROOT
 from sale_app.config.log import Logger
 from sale_app.core.kb.loader.excel_loader import xlsx_loader
-from sale_app.core.kb.vector.qdrant_vector import qdrant_client
+from sale_app.core.kb.vector.qdrant_vector.qdrant_vector2 import qdrant_client
+from sale_app.core.kb.vector.vector_factory import Vector
+from sale_app.core.moudel.zhipuai import ZhipuAI
 
 logger = Logger("fly_base")
 
@@ -23,11 +25,13 @@ def xlsx_qa_upload(f):
     file_docs = xlsx_loader(file_path)
     # 写入到向量库
     logger.info(f"文件内容:{file_docs}")
-    qdrant = qdrant_client()
+
+    vector_processor = Vector().vector_processor
     # 将file_docs 转成List[Document]格式
     docs = [Document(page_content=doc['question'],
                      metadata={'question': doc['question'], 'answer': doc['answer']}) for doc in file_docs]
-    # qdrant.
-
-    vector = qdrant.add_documents(docs)
+    zhipu = ZhipuAI()
+    embedding = zhipu.embedding()
+    docs = docs[:10]
+    vector = vector_processor.add_texts(docs,embedding)
     logger.info(f"向量库写入成功")

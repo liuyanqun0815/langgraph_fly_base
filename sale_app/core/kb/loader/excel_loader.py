@@ -16,7 +16,7 @@ def xlsx_loader(file_path) -> list[dict]:
         logger.info(f"Sheet Name: {sheet_name}")
         questions = df.iloc[:, 0].tolist()  # 第一列数据
         answers = df.iloc[:, 1].tolist()  # 第二列数据
-        file_name = os.path.basename(file_path)
+        file_name = file_path.name
         file_name = os.path.splitext(file_name)[0]
         # 将问题和答案组合成一个列表的列表
         qa_list = list(zip(questions, answers))

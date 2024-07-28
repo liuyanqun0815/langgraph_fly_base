@@ -1,19 +1,24 @@
 import os
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from .forms import DocumentForm
+from .forms.excel_form import ExcelUploadForm
 
 from ..config.log import Logger
-from ..core.kb.vector.qdrant_vector import create_collection
+from sale_app.core.kb.vector.qdrant_vector.qdrant_vector2 import create_collection
+from ..core.kb.kb_sevice import KBService
 from ..core.kb.xlsx_qa_view import xlsx_qa_upload
 
 logger = Logger("fly_base")
 
 
 # xlsx文件上传
+class DocumentForm:
+    pass
+
+
 @csrf_exempt
 def upload_file(request):
     if request.method == 'POST':
@@ -38,3 +43,42 @@ def create_index(request):
         return HttpResponse("collection_name is null")
     create_collection(collection_name)
     return HttpResponse("create index success")
+
+
+@csrf_exempt
+def search(request):
+    query = request.GET.get('query')
+    data = KBService.similarity_search(query)
+    json = {
+        "data": data.__str__()
+    }
+    return JsonResponse(json)
+
+
+@csrf_exempt
+def create_collection_api(request):
+    collection_name = request.GET.get("collection_name")
+    if not collection_name:
+        return HttpResponse("collection_name is null")
+    KBService.create_collection(collection_name)
+    return HttpResponse("create index success")
+
+
+@csrf_exempt
+def upload_and_read_excel(request):
+    if request.method == 'POST':
+        form = ExcelUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            excel_file = request.FILES['excel_file']
+            KBService.parse_excel(excel_file)
+    return JsonResponse({'data': 'sucess'})
+
+
+@csrf_exempt
+def hybrid_search(request):
+    query = request.GET.get('query')
+    data = KBService.hybrid_search(query)
+    json = {
+        "data": data.__str__()
+    }
+    return JsonResponse(json)

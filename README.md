@@ -21,6 +21,10 @@
 ![recommend.png](docs%2Frecommend.png)
 
 项目目前开发过程中,每天都会进行更新
+# 数据库选择
+向量数据库选择困难症，对比了活跃度比较高或者易用的数据库(drant,milvus,weaviate,faiss)，最终选择milvus,详细介绍见[向量数据库浅谈](https://juejin.cn/post/7388096340503707688)
+
+后续继续会集成drant和weaviate
 
 ## 步骤:
 1. 创建项目
@@ -38,7 +42,7 @@
 进入到docker目录下 \
 ```shell
 cd docker
-docker-compose -f docker-compose.qdrant.yaml -p fly up -d
+docker-compose -f milvus-standalone-docker-compose.yml -p fly up -d
 ```
 9. 启动项目\
 `python manage.py runserver`
@@ -47,3 +51,4 @@ docker-compose -f docker-compose.qdrant.yaml -p fly up -d
 ## 更新日志：
 1. 2024-06-17: 添加支持xlsx格式文件导入，导入QA文档
 2. 2024-06-18: 添加向量数据库支持（qdrant，docker部署）
+3. 2024-07-28: 添加milvus支持，docker部署
