@@ -24,6 +24,11 @@
 # 数据库选择
 向量数据库选择困难症，对比了活跃度比较高或者易用的数据库(drant,milvus,weaviate,faiss)，最终选择milvus,详细介绍见[向量数据库浅谈](https://juejin.cn/post/7388096340503707688)
 
+增加API测试接口（[fly_base.html](docs%2Ffly_base.html)），测试向量库创建集合、向量库插入向量、向量库查询向量、文件上传等等
+
+milvus可视化页面![img_1.png](docs%2Fimg_1.png)
+
+
 后续继续会集成drant和weaviate
 
 ## 步骤:
