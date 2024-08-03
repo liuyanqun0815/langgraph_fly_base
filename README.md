@@ -1,6 +1,7 @@
 
 
 ## 基于langgraph构建工作流
+![大模型学习记录](https://juejin.cn/column/7379059739118878732?share_token=0def5d34-e96c-4c05-b75c-9dfce6b36244)
 
 ### 方案设计:
 
