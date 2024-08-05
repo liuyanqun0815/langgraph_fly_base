@@ -1,7 +1,7 @@
 
 
 ## 基于langgraph构建工作流
-[大模型学习记录]([docs%2Flangchain.drawio.png](https://juejin.cn/column/7379059739118878732))
+[大模型学习记录](https://juejin.cn/column/7379059739118878732)
 
 ### 方案设计:
 
