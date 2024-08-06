@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 from uuid import uuid4
 
 # from langchain_milvus import MilvusCollectionHybridSearchRetriever
@@ -8,12 +8,16 @@ from langchain_milvus.utils.sparse import BM25SparseEmbedding
 from langchain_milvus.vectorstores import Milvus
 from langchain_core.documents import Document
 from pymilvus import FieldSchema, DataType, CollectionSchema, Collection, connections, WeightedRanker
+from scipy.sparse import csr_array  # type: ignore
 
 from config import MilvusConfig
+from sale_app.core.embedding.splade_embedding_model import SpladeEmbeddingModel
 from sale_app.core.kb.vector.vector_base import BaseVector
 from sale_app.core.kb.vector.vector_factory import AbstractVectorFactory
 from sale_app.core.kb.vector.vector_type import VectorType
 from sale_app.core.moudel.zhipuai import ZhipuAI
+
+splade_ef = SpladeEmbeddingModel()
 
 logger = logging.getLogger(__name__)
 logger.level = logging.DEBUG
@@ -93,9 +97,17 @@ class MilvusVector(BaseVector):
     def add_documents(self, documents: list[Document]):
         self.milvus_store.from_documents(documents, self._embeddings, collection_name=self._collection_name)
 
+    def _sparse_to_dict(self, sparse_array: csr_array) -> Dict[int, float]:
+        row_indices, col_indices = sparse_array.nonzero()
+        non_zero_values = sparse_array.data
+        result_dict = {}
+        for col_index, value in zip(col_indices, non_zero_values):
+            result_dict[col_index] = value
+        return result_dict
+
     def hybrid_add_documents(self, documents: list[Document]):
         dense_embedding_func = self._embeddings
-        sparse_embedding_func = BM25SparseEmbedding(language='zh', corpus=[doc.page_content for doc in documents])
+        # sparse_embedding_func = BM25SparseEmbedding(language='zh', corpus=[doc.page_content for doc in documents])
         entities = []
         for doc in documents:
             dense_field = "dense_vector"
@@ -104,7 +116,7 @@ class MilvusVector(BaseVector):
             metadata = 'metadata'
             entity = {
                 dense_field: dense_embedding_func.embed_documents([doc.page_content])[0],
-                sparse_field: sparse_embedding_func.embed_documents([doc.page_content])[0],
+                sparse_field: splade_ef.embed_documents([doc.page_content])[0],
                 page_content: doc.page_content,
                 metadata: {
                     "question": doc.metadata.get("question"),
@@ -136,7 +148,7 @@ class MilvusVector(BaseVector):
             collection=collection,
             rerank=WeightedRanker(0.5, 0.5),
             anns_fields=[dense_field, sparse_field],
-            field_embeddings=[dense_embedding_func, sparse_embedding_func],
+            field_embeddings=[dense_embedding_func, splade_ef],
             field_search_params=[dense_search_params, sparse_search_params],
             top_k=3,
             text_field=text_field,
