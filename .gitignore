@@ -15,3 +15,7 @@
 /vcs.xml
 /modules.xml
 .idea
+etcd/
+milvus/
+minio/
+qdrant/
