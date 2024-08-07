@@ -43,12 +43,12 @@ class BaseVector(ABC):
     ) -> list[Document]:
         raise NotImplementedError
 
-    # @abstractmethod
-    # def search_by_full_text(
-    #         self, query: str,
-    #         **kwargs: Any
-    # ) -> list[Document]:
-    #     raise NotImplementedError
+    @abstractmethod
+    def search_by_keyword(
+            self, query: str,
+            **kwargs: Any
+    ) -> list[Document]:
+        raise NotImplementedError
 
 
     def _filter_duplicate_texts(self, texts: list[Document]) -> list[Document]:

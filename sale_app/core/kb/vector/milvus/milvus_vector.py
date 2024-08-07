@@ -1,19 +1,20 @@
 import logging
-from typing import Any, Optional
-from uuid import uuid4
+from typing import Any, Optional, Dict
 
-# from langchain_milvus import MilvusCollectionHybridSearchRetriever
 from langchain_milvus.retrievers import MilvusCollectionHybridSearchRetriever
-from langchain_milvus.utils.sparse import BM25SparseEmbedding
 from langchain_milvus.vectorstores import Milvus
 from langchain_core.documents import Document
 from pymilvus import FieldSchema, DataType, CollectionSchema, Collection, connections, WeightedRanker
+from scipy.sparse import csr_array  # type: ignore
 
 from config import MilvusConfig
+from sale_app.core.embedding.splade_embedding_model import SpladeEmbeddingModel
 from sale_app.core.kb.vector.vector_base import BaseVector
 from sale_app.core.kb.vector.vector_factory import AbstractVectorFactory
 from sale_app.core.kb.vector.vector_type import VectorType
 from sale_app.core.moudel.zhipuai import ZhipuAI
+
+splade_ef = SpladeEmbeddingModel()
 
 logger = logging.getLogger(__name__)
 logger.level = logging.DEBUG
@@ -29,7 +30,7 @@ class MilvusVector(BaseVector):
         self._embeddings = zhipu.embedding()
         connections.connect(host=self._config.milvus_host, port=self._config.milvus_port)
 
-        # self.milvus_store = self._init(config)
+        self.milvus_store = self._init(config)
 
     def _init(self, config) -> Milvus:
         return Milvus(
@@ -45,6 +46,9 @@ class MilvusVector(BaseVector):
             },
             consistency_level="Session",
             collection_name=self._collection_name,
+            vector_field="dense_vector",
+            text_field="page_content",
+
         )
 
     def get_type(self) -> str:
@@ -84,9 +88,9 @@ class MilvusVector(BaseVector):
             name=collection_name, schema=schema, consistency_level="Session"
         )
 
-        dense_index = {"index_type": "FLAT", "metric_type": "IP"}
+        dense_index = {"index_type": "IVF_FLAT", "metric_type": "IP", "params": {"nlist": 128}}
         collection.create_index("dense_vector", dense_index)
-        sparse_index = {"index_type": "SPARSE_INVERTED_INDEX", "metric_type": "IP"}
+        sparse_index = {"index_type": "SPARSE_INVERTED_INDEX", "metric_type": "IP", "params": {"nlist": 128}}
         collection.create_index("sparse_vector", sparse_index)
         collection.flush()
 
@@ -95,7 +99,7 @@ class MilvusVector(BaseVector):
 
     def hybrid_add_documents(self, documents: list[Document]):
         dense_embedding_func = self._embeddings
-        sparse_embedding_func = BM25SparseEmbedding(language='zh', corpus=[doc.page_content for doc in documents])
+        # sparse_embedding_func = BM25SparseEmbedding(language='zh', corpus=[doc.page_content for doc in documents])
         entities = []
         for doc in documents:
             dense_field = "dense_vector"
@@ -104,7 +108,7 @@ class MilvusVector(BaseVector):
             metadata = 'metadata'
             entity = {
                 dense_field: dense_embedding_func.embed_documents([doc.page_content])[0],
-                sparse_field: sparse_embedding_func.embed_documents([doc.page_content])[0],
+                sparse_field: splade_ef.embed_documents([doc.page_content])[0],
                 page_content: doc.page_content,
                 metadata: {
                     "question": doc.metadata.get("question"),
@@ -121,7 +125,7 @@ class MilvusVector(BaseVector):
 
     def hybrid_search(self, query: str, **kwargs: Any) -> list[Document]:
         dense_embedding_func = self._embeddings
-        sparse_embedding_func = BM25SparseEmbedding(language='zh', corpus=[query])
+        # sparse_embedding_func = BM25SparseEmbedding(language='zh', corpus=[query])
         sparse_search_params = {"metric_type": "IP"}
         dense_search_params = {"metric_type": "IP", "params": {}}
         dense_field = "dense_vector"
@@ -136,7 +140,7 @@ class MilvusVector(BaseVector):
             collection=collection,
             rerank=WeightedRanker(0.5, 0.5),
             anns_fields=[dense_field, sparse_field],
-            field_embeddings=[dense_embedding_func, sparse_embedding_func],
+            field_embeddings=[dense_embedding_func, splade_ef],
             field_search_params=[dense_search_params, sparse_search_params],
             top_k=3,
             text_field=text_field,
@@ -151,30 +155,46 @@ class MilvusVector(BaseVector):
         return docs
 
     def search_by_vector(self, query: str, **kwargs: Any) -> list[Document]:
-        results = self.milvus_store.similarity_search(
+        results = self.milvus_store.similarity_search_with_score(
             query=query,
             k=2,
         )
         docs = []
         for result in results:
-            doc = Document(page_content=result.page_content,
-                           metadata=result.metadata)
+            doc = Document(page_content=result[0].page_content,
+                           metadata=result[0].metadata.get("metadata"))
             docs.append(doc)
         return docs
 
+    def search_by_keyword(self, query: str, **kwargs: Any) -> list[Document]:
 
-def search_by_full_text(self, query: str, **kwargs: Any) -> list[Document]:
-    # milvus/zilliz doesn't support bm25 search
-    return []
+        collection = Collection(
+            name=self._collection_name, consistency_level="Session"
+        )
 
-
-# def _init_client(self, config) -> MilvusClient:
-#     if config.secure:
-#         uri = "https://" + str(config.host) + ":" + str(config.port)
-#     else:
-#         uri = "http://" + str(config.host) + ":" + str(config.port)
-#     client = MilvusClient(uri=uri, user=config.user, password=config.password, db_name=config.database)
-#     return client
+        # 执行搜索，设置搜索参数，如查询的向量数（nprobe）、搜索的向量数（limit）等
+        search_params = {
+            "metric_type": "IP",  # 使用 L2 距离作为相似度度量
+            "params": {"drop_ratio_search": 0.4},  # 查询向量中要忽略的最小值的比例。
+            "limit": 4,
+        }
+        embedding = splade_ef.embed_query(query)
+        # 稀疏向量检索
+        results = collection.search(
+            data=[embedding],  # 查询向量
+            anns_field="sparse_vector",  # 稀疏向量字段名
+            param=search_params,  # 搜索参数
+            limit=3,  # 返回的向量个数
+            output_fields=["page_content", "metadata"]  # 返回的字段列表
+        )
+        docs = []
+        for result in results:
+            for hit in result:
+                print(f"hit: {hit}")
+                doc = Document(page_content=hit.fields['page_content'],
+                               metadata=hit.fields['metadata'])
+                docs.append(doc)
+        return docs
 
 
 class MilvusVectorFactory(AbstractVectorFactory):
