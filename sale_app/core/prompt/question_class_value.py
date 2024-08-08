@@ -12,7 +12,7 @@ SYSTEM_PROMPT = """
 ### 内存
 这是人与助手之间的聊天记录，位于 <histories></histories> XML 标签内。
 <histories>
-
+{histories}
 </histories>
 """
 
@@ -32,5 +32,18 @@ ASSISTANT_PROMPT_1 = """
 USER_PROMPT_2 = """
 {"input_text": ["服务差，上菜慢"],
 "categories": [{"category_name":"食物质量"},{"category_name":"体验"},{"category_name":"价格"}],
-"classification_instructions": []}
+"classification_instructions": ["根据客户提供的反馈对文本进行分类"]}
+"""
+
+ASSISTANT_PROMPT_2 = """
+```json
+{"keywords": ["糟糕的服务", "缓慢", "食物", "小费", "糟糕", "女服务员"],
+"category_name": "体验"}
+```
+"""
+
+USER_PROMPT_3 = """
+'{{"input_text": ["{input_text}"],',
+'"categories": {categories}, ',
+'"classification_instructions": ["根据客户的问题进行分类"]}}'
 """
