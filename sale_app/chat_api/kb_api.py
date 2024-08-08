@@ -48,7 +48,8 @@ def create_index(request):
 @csrf_exempt
 def search(request):
     query = request.GET.get('query')
-    data = KBService.similarity_search(query)
+    collection_name = request.GET.get("collection_name")
+    data = KBService.similarity_search(query, collection_name)
     json = {
         "data": data.__str__()
     }
@@ -70,14 +71,27 @@ def upload_and_read_excel(request):
         form = ExcelUploadForm(request.POST, request.FILES)
         if form.is_valid():
             excel_file = request.FILES['excel_file']
-            KBService.parse_excel(excel_file)
+            collection_name = request.GET.get("collection_name")
+            KBService.parse_excel(excel_file, collection_name)
     return JsonResponse({'data': 'sucess'})
 
 
 @csrf_exempt
 def hybrid_search(request):
     query = request.GET.get('query')
-    data = KBService.hybrid_search(query)
+    collection_name = request.GET.get("collection_name")
+    data = KBService.hybrid_search(query, collection_name)
+    json = {
+        "data": data.__str__()
+    }
+    return JsonResponse(json)
+
+
+@csrf_exempt
+def keyword_search(request):
+    query = request.GET.get('query')
+    collection_name = request.GET.get("collection_name")
+    data = KBService.keyword_search(query, collection_name)
     json = {
         "data": data.__str__()
     }

@@ -12,6 +12,7 @@ from langgraph.graph import StateGraph, END
 from sale_app.core.agent.information_gathering import information_node, information_gathering
 from sale_app.core.agent.intention_confirm import intention_confirm, intention_node
 from sale_app.core.agent.other_agent import chat_manager
+from sale_app.core.agent.qa_handle import qa_node, qa_agent
 from sale_app.core.mutil.fix_question import fix_question, fixed_question_node
 from sale_app.core.mutil.question_router import create_team_supervisor
 from sale_app.core.moudel.zhipuai import ZhipuAI
@@ -80,7 +81,7 @@ class FlowState(TypedDict):
     isRecommend: bool
 
 
-super = create_team_supervisor(llm, ["信息收集", "闲聊经理", "意图确认", "产品推荐"])
+super = create_team_supervisor(llm, ["信息收集", "闲聊经理", "意图确认", "产品推荐", "产品解答专家"])
 
 supervisor_node = functools.partial(super_agent_node, agent=super, name="问题分类")
 
@@ -91,17 +92,22 @@ flow_graph.add_node("问题分类", supervisor_node)
 flow_graph.add_node("闲聊经理", functools.partial(agent_node, agent=chat_manager(llm)))
 flow_graph.add_node("意图确认", functools.partial(intention_node, agent=intention_confirm(llm), name="意图确认"))
 flow_graph.add_node("信息收集", functools.partial(information_node, agent=information_gathering(llm), name="信息收集"))
+flow_graph.add_node("产品解答专家", functools.partial(qa_node, agent=qa_agent(llm), name="产品解答专家"))
+
 # 添加一个子链
 flow_graph.add_node("产品推荐", re_graph.compile())
 
 flow_graph.add_edge("问题修复", "问题分类")
+flow_graph.add_edge("产品解答专家", END)
 
 
 def decide_router(state):
-    if state.get("next") == "产品问答":
-        return "产品问答"
+    if state.get("next") == "产品解答专家":
+        return "产品解答专家"
+    # if state.get("next") == "产品推荐":
+    #     return state.get('next')
     if state.get("next") == "产品推荐":
-        return state.get('next')
+        return "产品解答专家"
     elif state.get('pre_node') == "信息收集" and state.get("next") != "产品问答":
         return "信息收集"
     else:
@@ -113,6 +119,7 @@ flow_graph.add_conditional_edges("问题分类", decide_router, {
     "意图确认": "意图确认",
     "信息收集": "信息收集",
     "产品推荐": "产品推荐",
+    "产品解答专家": "产品解答专家",
 })
 flow_graph.add_conditional_edges("意图确认", lambda x: x["next"], {
     "信息收集": "信息收集",
@@ -134,14 +141,6 @@ flow_graph.add_conditional_edges("信息收集", information_router, {
     "FINISH": END,
     "产品推荐": "产品推荐",
 })
-
-# for node in list(flow_graph.nodes.keys()):
-#     flow_graph.add_edge(node, END)
-#
-# conditional_map = {k: k for k in list(flow_graph.nodes.keys())}
-# conditional_map["FINISH"] = END
-
-# flow_graph.add_conditional_edges("问题分类", lambda x: x["next"], conditional_map)
 
 flow_graph.set_entry_point("问题修复")
 

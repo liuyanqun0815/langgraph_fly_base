@@ -1,6 +1,7 @@
 
 
 ## 基于langgraph构建工作流
+[大模型学习记录](https://juejin.cn/column/7379059739118878732)
 
 ### 方案设计:
 
@@ -57,3 +58,5 @@ docker-compose -f milvus-standalone-docker-compose.yml -p fly up -d
 1. 2024-06-17: 添加支持xlsx格式文件导入，导入QA文档
 2. 2024-06-18: 添加向量数据库支持（qdrant，docker部署）
 3. 2024-07-28: 添加milvus支持，docker部署
+4. 2024-08-07: milvus支持混合检索（稠密向量检索+稀疏向量检索-Splade）
+

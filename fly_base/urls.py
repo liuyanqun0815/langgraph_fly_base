@@ -19,7 +19,7 @@ from django.urls import path
 
 from sale_app.chat_api.api import to_chat
 from sale_app.chat_api.kb_api import upload_file, create_index, search, create_collection_api, upload_and_read_excel, \
-    hybrid_search
+    hybrid_search, keyword_search
 
 urlpatterns = [
     # path("admin/", admin.site.urls),
@@ -30,4 +30,5 @@ urlpatterns = [
     path('kb/create_collection', create_collection_api),
     path('kb/upload_and_read_excel', upload_and_read_excel),
     path('kb/hybrid_search', hybrid_search),
+    path('kb/keyword_search', keyword_search),
 ]

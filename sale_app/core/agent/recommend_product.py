@@ -77,4 +77,4 @@ def recommend_product(llm: BaseChatModel):
 def recommend_node(state, agent):
     result = agent.invoke(state)
     if result:
-        return {"messages": [AIMessage(content=result.content)]}
+        return {"messages": [AIMessage(content=result.content)],"product_list": result.content}
