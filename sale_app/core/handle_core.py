@@ -20,9 +20,9 @@ def flow_control(question: str, sessionId: str) -> dict | str | list[str | dict]
         logger.info(f"前置安全校验不通过，返回结果:{pre_data}")
         return pre_data
     # 信息脱敏
-    logger.info(f"原来信息:{question}")
-    question = sensitive_info_anonymize(question)
-    logger.info(f"信息脱敏结果:{question}")
+    # logger.info(f"原来信息:{question}")
+    # question = sensitive_info_anonymize(question)
+    # logger.info(f"信息脱敏结果:{question}")
     configurable = {
         "configurable": {
             "thread_id": sessionId
