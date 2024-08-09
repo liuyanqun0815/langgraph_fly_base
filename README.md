@@ -55,9 +55,16 @@ docker-compose -f milvus-standalone-docker-compose.yml -p fly up -d
 
 
 ## 更新日志：
+```
 1. 2024-06-17: 添加支持xlsx格式文件导入，导入QA文档
 2. 2024-06-18: 添加向量数据库支持（qdrant，docker部署）
 3. 2024-07-28: 添加milvus支持，docker部署
 4. 2024-08-07: milvus支持混合检索（稠密向量检索+稀疏向量检索-Splade）
 5. 2024-08-09: 问题分类节点重构，信息脱敏节点重构
 
+```
+## 文章
+
+[向量检索引擎：Milvus](https://developer.baidu.com/article/detail.html?id=1227320)
+
+[推荐系统常见问题分析](https://cloud.tencent.com/developer/techpedia/1764)

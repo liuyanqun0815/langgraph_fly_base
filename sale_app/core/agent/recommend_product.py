@@ -23,7 +23,7 @@ def extract_information(llm: BaseChatModel):
 
 
 def extract_node(state, agent):
-    logger.info(f"信息提取节点:{state.get('history')}")
+    logger.info(f"信息提取节点:{state.get('messages')}")
     result = agent.invoke(state)
     if result:
         return {"user_info": result.content}
