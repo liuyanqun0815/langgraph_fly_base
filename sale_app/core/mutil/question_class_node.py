@@ -12,7 +12,7 @@ def question_class_func(llm: BaseChatModel, members: list):
 
     question_prompt_runnable = RunnableLambda(
         lambda x: question_class_prompt(
-            history=x["history"],
+            history=x["messages"],
             question=x["question"],
             categories=categories
         )

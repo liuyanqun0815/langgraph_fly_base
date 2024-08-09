@@ -3,8 +3,12 @@ from langchain_core.messages import AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 
+from sale_app.config.log import Logger
 from sale_app.database.product import get_product_info
 from sale_app.util.history_formate import format_docs
+
+logger = Logger("fly_base")
+
 
 SYSTEM_CONTENT = """
 约束：
@@ -32,6 +36,7 @@ def extract_information(llm: BaseChatModel):
 
 
 def extract_node(state, agent):
+    logger.info(f"信息提取节点:{state.get('history')}")
     result = agent.invoke(state)
     if result:
         return {"user_info": result.content}
@@ -72,7 +77,8 @@ def recommend_product(llm: BaseChatModel):
     ) | prompt | llm
 
 
-def recommend_node(state, agent):
+def recommend_node(state, agent, name):
+    logger.info(f"{name}节点内容:{state}")
     result = agent.invoke(state)
     if result:
-        return {"messages": [AIMessage(content=result.content)], "product_list": result.content}
+        return {"messages": [AIMessage(content=result.content)], "product_list": result.content, "pre_node": name}

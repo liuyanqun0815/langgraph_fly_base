@@ -4,7 +4,10 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.runnables import RunnablePassthrough
 
+from sale_app.config.log import Logger
 from sale_app.util.history_formate import format_docs
+
+logger = Logger("fly_base")
 
 SYSTEM_CONTENT = """
 你是银行贷款营销经理，你的任务根据客户的聊天内容，能够判断客户是否存在贷款意图
@@ -40,6 +43,7 @@ def intention_node(state, agent, name):
     messages = state["messages"]
     state["history"] = messages[:-1]
     last_message = messages[-1]
+    logger.info(f"{name}节点信息:{last_message.content}")
     if isinstance(last_message, HumanMessage):
         state["question"] = last_message.content
     result = agent.invoke(state)

@@ -1,12 +1,16 @@
-from langchain.globals import set_debug
+import os
+
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.runnables import RunnablePassthrough
 
-from sale_app.core.moudel.zhipuai import ZhipuAI
+from sale_app.config.log import Logger
+from sale_app.secrity.sensitive_info import sensitive_info_anonymize
 from sale_app.util.history_formate import format_docs
+
+logger = Logger("fly_base")
 
 
 class toBeCollectionInformation(BaseModel):
@@ -64,14 +68,16 @@ def information_gathering(llm: BaseChatModel):
     ) | prompt | llm.with_structured_output(toBeCollectionInformation)
 
 
-
-
-def information_node(state, agent,name):
+def information_node(state, agent, name):
     messages = state["messages"]
     state["history"] = messages[:-1]
     last_message = messages[-1]
+    logger.info(f"{name}节点信息:{last_message.content}")
     if isinstance(last_message, HumanMessage):
         state["question"] = last_message.content
+        if os.getenv("USER_INFO_MASK"):
+            state["question"] = sensitive_info_anonymize(last_message.content)
+            logger.info(f"{name}节点信息:{last_message.content},脱敏后信息：{state['question']}")
     result = agent.invoke(state)
     if result:
         return {"messages": [AIMessage(content=result.information)],
@@ -80,35 +86,3 @@ def information_node(state, agent,name):
                 "isRecommend": result.isRecommend}
     else:
         print("信息收集返回为空")
-
-
-# llm = ZhipuAI().openai_chat()
-# chain = information_gathering(llm)
-# prompt = ChatPromptTemplate.from_messages(
-#     [
-#         ("system", SYSTEM_PROMPT),
-#         # ("placeholder", "{examples}"),
-#         # ("placeholder", "{messages}"),
-#         MessagesPlaceholder(variable_name="messages"),
-#         # ("human", "{input}"),
-#     ]
-# )
-# data = chain.invoke({"question": "25",
-#
-#                      "history": [HumanMessage(content="你好"),
-#                                  AIMessage(content="你打算用这笔贷款做什么？"),
-#                                  HumanMessage(content="买车"),
-#                                  AIMessage(content="你打算贷款多少钱?"),
-#                                  HumanMessage(content="13w"),
-#                                  AIMessage(content="你打算贷款多长时间?"),
-#                                  HumanMessage(content="大概3年吧"),
-#                                  AIMessage(content="你打算选择哪种还款方式?"),
-#                                  HumanMessage(content="等额本息"),
-#                                  AIMessage(content="您的年龄是多少呢?"),
-#                                  # HumanMessage(content="34"),
-#                                  #                                   AIMessage(content="您是否有房产?"),
-#                                  ],
-#                      }
-#
-#                     )
-# print(data)

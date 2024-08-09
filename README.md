@@ -14,7 +14,7 @@
 **langchain监控框架：langsimith**
 
 ## **工作流**：
-方案里面的敏感词汇和信息脱敏考虑到相对独立，没有设计到工作流中
+方案里面的敏感词汇和信息脱敏考虑到相对独立，没有设计到工作流中，信息脱敏只对信息收集阶段进行脱敏，其他阶段不脱敏
 ![grap.png](docs%2Fgrap.png)
 
 #### 产品推荐子链
@@ -59,4 +59,5 @@ docker-compose -f milvus-standalone-docker-compose.yml -p fly up -d
 2. 2024-06-18: 添加向量数据库支持（qdrant，docker部署）
 3. 2024-07-28: 添加milvus支持，docker部署
 4. 2024-08-07: milvus支持混合检索（稠密向量检索+稀疏向量检索-Splade）
+5. 2024-08-09: 问题分类节点重构，信息脱敏节点重构
 

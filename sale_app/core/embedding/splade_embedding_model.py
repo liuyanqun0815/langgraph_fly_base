@@ -11,8 +11,8 @@ class SpladeEmbeddingModel(BaseSparseEmbedding):
         self.splade_ef = SpladeEmbeddingFunction(
             model_name="naver/splade-cocondenser-selfdistil",
             device="cpu",
-            # k_tokens_query=64,
-            # k_tokens_document=128
+            k_tokens_query=64,
+            k_tokens_document=128
         )
 
     def embed_query(self, text: str) -> Dict[int, float]:

@@ -11,26 +11,19 @@ from langgraph.graph import StateGraph, END
 
 from sale_app.core.agent.information_gathering import information_node, information_gathering
 from sale_app.core.agent.intention_confirm import intention_confirm, intention_node
-from sale_app.core.agent.other_agent import chat_manager
+from sale_app.core.agent.other_agent import chat_manager, agent_node
 from sale_app.core.agent.qa_handle import qa_node, qa_agent
 from sale_app.core.mutil.fix_question import fix_question, fixed_question_node
 from sale_app.core.mutil.question_class_node import question_class_func
 from sale_app.core.moudel.zhipuai import ZhipuAI
 from sale_app.core.mutil.recommend_product_graph import re_graph
 from sale_app.config.log import Logger
+from sale_app.util.file_utils import find_project_root
 
 llm = ZhipuAI().openai_chat()
 
-current_file_path = os.path.abspath(__file__)
-current_dir_path = os.path.dirname(current_file_path)
-memory = SqliteSaver.from_conn_string(current_dir_path + "/chat_history.db")
+memory = SqliteSaver.from_conn_string(find_project_root(os.path.abspath(__file__)) + "/memory_file/chat_history.db")
 logger = Logger("fly_base")
-
-def agent_node(state, agent):
-    # state["messages"] = state["messages"][:-1]
-    result = agent.invoke(state)
-    return {"messages": [AIMessage(content=result.content)]}
-
 
 def super_agent_node(state, agent, name):
     # name = "FINISH"
@@ -86,7 +79,7 @@ flow_graph = StateGraph(FlowState)
 flow_graph.add_node("问题修复", functools.partial(fixed_question_node, agent=fix_question(llm)))
 flow_graph.add_node("问题分类", supervisor_node)
 
-flow_graph.add_node("闲聊经理", functools.partial(agent_node, agent=chat_manager(llm)))
+flow_graph.add_node("闲聊经理", functools.partial(agent_node, agent=chat_manager(llm),name="闲聊经理"))
 flow_graph.add_node("意图确认", functools.partial(intention_node, agent=intention_confirm(llm), name="意图确认"))
 flow_graph.add_node("信息收集", functools.partial(information_node, agent=information_gathering(llm), name="信息收集"))
 flow_graph.add_node("产品解答专家", functools.partial(qa_node, agent=qa_agent(llm), name="产品解答专家"))
@@ -105,7 +98,10 @@ def decide_router(state):
         return "产品推荐"
     elif "信息收集" in state.get('next'):
         return "信息收集"
-    elif "信息收集" in state.get('pre_node') and state.get("next") != "产品问答":
+    elif state.get('pre_node') \
+            and state.get("next") \
+            and "信息收集" in state.get('pre_node') \
+            and state.get("next") != "产品问答":
         return "信息收集"
     else:
         return state.get('next')

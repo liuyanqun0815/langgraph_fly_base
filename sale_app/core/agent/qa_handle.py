@@ -4,7 +4,9 @@ from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.runnables import RunnablePassthrough
 
+from sale_app.config.log import Logger
 from sale_app.core.kb.kb_sevice import KBService
+logger = Logger("fly_base")
 
 # 定义用于生成 AI 响应的提示模板
 PROMPT_TEMPLATE = """你是贷款经理，擅长解答贷款问题，尽可能使用基于事实和统计的信息来回答问题。
@@ -57,9 +59,10 @@ def qa_agent(llm: BaseChatModel):
 def qa_node(state, agent, name):
     messages = state["messages"]
     state["history"] = messages[:-1]
+    logger.info(f"{name}节点内容: {state['fixed_question']}")
     last_message = messages[-1]
     if isinstance(last_message, HumanMessage):
-        state["question"] = last_message.content
+        state["question"] = state["fixed_question"]
     result = agent.invoke(state)
     if result:
-        return {"messages": [AIMessage(content=result.content)]}
+        return {"messages": [AIMessage(content=result.content)], "pre_node": name}

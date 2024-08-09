@@ -13,11 +13,12 @@ from sale_app.core.kb.vector.vector_base import BaseVector
 from sale_app.core.kb.vector.vector_factory import AbstractVectorFactory
 from sale_app.core.kb.vector.vector_type import VectorType
 from sale_app.core.moudel.zhipuai import ZhipuAI
+from sale_app.config.log import Logger
 
 splade_ef = SpladeEmbeddingModel()
 
-logger = logging.getLogger(__name__)
-logger.level = logging.DEBUG
+logger = Logger("fly_base")
+
 
 
 class MilvusVector(BaseVector):
@@ -163,6 +164,7 @@ class MilvusVector(BaseVector):
         return docs
 
     def search_by_vector(self, query: str, **kwargs: Any) -> list[Document]:
+        logger.info(f"语义检索，请求内容：{query}")
         results = self.milvus_store.similarity_search_with_score(
             query=query,
             k=2,
