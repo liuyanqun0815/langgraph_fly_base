@@ -23,7 +23,7 @@ def fixed_question_node(state, agent):
     if isinstance(last_message, HumanMessage):
         state["question"] = last_message.content
     result = agent.invoke(state)
-    return {"fixed_question": result.fixQuestion}
+    return {"fixed_question": result.fixQuestion, "question": state["question"]}
 
 
 # 问题修正节点

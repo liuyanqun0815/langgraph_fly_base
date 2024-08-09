@@ -14,15 +14,18 @@ from sale_app.core.agent.intention_confirm import intention_confirm, intention_n
 from sale_app.core.agent.other_agent import chat_manager
 from sale_app.core.agent.qa_handle import qa_node, qa_agent
 from sale_app.core.mutil.fix_question import fix_question, fixed_question_node
-from sale_app.core.mutil.question_router import create_team_supervisor
+from sale_app.core.mutil.question_class_node import question_class_func
 from sale_app.core.moudel.zhipuai import ZhipuAI
 from sale_app.core.mutil.recommend_product_graph import re_graph
+from sale_app.config.log import Logger
 
 llm = ZhipuAI().openai_chat()
 
 current_file_path = os.path.abspath(__file__)
 current_dir_path = os.path.dirname(current_file_path)
 memory = SqliteSaver.from_conn_string(current_dir_path + "/chat_history.db")
+logger = Logger("fly_base")
+
 def agent_node(state, agent):
     # state["messages"] = state["messages"][:-1]
     result = agent.invoke(state)
@@ -38,25 +41,18 @@ def super_agent_node(state, agent, name):
             "next": name,
         }
     result = agent.invoke(state)
+    category_name = '闲聊经理'
     if isinstance(result, ToolMessage):
         pass
     if isinstance(result, AIMessage):
-        result = AIMessage(**result.dict(exclude={"type", "name"}), name=name)
-        if result.additional_kwargs:
-            next_node = result.additional_kwargs["tool_calls"][0]["function"]["arguments"]
-            name = json.loads(next_node)["next"]
-        else:
-            text = result.content
-            match = re.search(r"next='([^']+)'", text)
-            if match:
-                name = match.group(1)
-            else:
-                name = state["pre_node"] if state["pre_node"] else "闲聊经理"
-        # messages.append(result)
-    # else:
-    # messages.append(result)
+        content = result.content
+        logger.info(f"问题分类:{content}")
+        if content:
+            clean_string = content.strip('```json\n').strip('\n```')
+            data = json.loads(clean_string)
+            category_name = data["category_name"]
     return {
-        "next": name,
+        "next": category_name,
     }
 
 
@@ -81,7 +77,8 @@ class FlowState(TypedDict):
     isRecommend: bool
 
 
-super = create_team_supervisor(llm, ["信息收集", "闲聊经理", "意图确认", "产品推荐", "产品解答专家"])
+super = question_class_func(llm, ["信息收集", "闲聊经理", "意图确认", "产品推荐",
+                                  "产品解答专家"])
 
 supervisor_node = functools.partial(super_agent_node, agent=super, name="问题分类")
 
@@ -102,13 +99,13 @@ flow_graph.add_edge("产品解答专家", END)
 
 
 def decide_router(state):
-    if state.get("next") == "产品解答专家":
+    if "产品解答专家" in state.get("next"):
         return "产品解答专家"
-    # if state.get("next") == "产品推荐":
-    #     return state.get('next')
-    if state.get("next") == "产品推荐":
-        return "产品解答专家"
-    elif state.get('pre_node') == "信息收集" and state.get("next") != "产品问答":
+    if "产品推荐" in state.get("next"):
+        return "产品推荐"
+    elif "信息收集" in state.get('next'):
+        return "信息收集"
+    elif "信息收集" in state.get('pre_node') and state.get("next") != "产品问答":
         return "信息收集"
     else:
         return state.get('next')
@@ -144,10 +141,11 @@ flow_graph.add_conditional_edges("信息收集", information_router, {
 
 flow_graph.set_entry_point("问题修复")
 
-
 chain = flow_graph.compile(
     checkpointer=memory,
 )
+
+
 # chain.get_graph().draw_png(output_file_path="grap.png", fontname="SimHei")
 
 def run_flow(question: str, config: dict) -> FlowState:

@@ -1,32 +1,33 @@
-from langchain_core.messages import HumanMessage, AIMessage
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
 
-from sale_app.core.moudel.zhipuai import ZhipuAI
+from langchain_core.language_models import BaseChatModel
+from langchain_core.runnables import RunnableLambda
+
 from sale_app.core.prompt.question_class_prompt import question_class_prompt
 
-history = [
-]
 
-# input_text = "我想买一个苹果手机13"
+def question_class_func(llm: BaseChatModel, members: list):
+    categories = []
+    for member in members:
+        categories.append({"category_name": member})
 
-categories = [{"category_name": "意愿确认"}, {"category_name": "产品推荐"}, {"category_name": "产品问答"},
-              {"category_name": "闲聊"}]
+    question_prompt_runnable = RunnableLambda(
+        lambda x: question_class_prompt(
+            history=x["history"],
+            question=x["question"],
+            categories=categories
+        )
+    )
+    return question_prompt_runnable | llm
 
-llm = ZhipuAI().openai_chat()
-
-
-messages = question_class_prompt(history, input_text, categories)
-prompt = ChatPromptTemplate.from_messages(
-    messages
-)
-
-chain = RunnablePassthrough.assign(
-        history=lambda x: x.get('history', []),
-        inputText=lambda x: x['question']  # 直接传递 question 参数
-    )| question_class_prompt(history=history, input_text=inputText, categories) | llm
-
-data = chain.invoke({
-    "input_text": input_text,
-    "history": history,
-})
+# history = [
+#     {
+#         "role": "user",
+#         "content": "hello",
+#     },
+# ]
+# list = ["信息收集", "闲聊经理", "意图确认", "产品推荐", "产品解答专家"]
+# data = question_class_func(list).invoke({
+#     "question": "这个产品怎么样",
+#     "history": history,
+# })
+# print(data)

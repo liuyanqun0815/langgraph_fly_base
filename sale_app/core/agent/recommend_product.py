@@ -1,4 +1,3 @@
-
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage
 from langchain_core.prompts import ChatPromptTemplate
@@ -38,8 +37,6 @@ def extract_node(state, agent):
         return {"user_info": result.content}
 
 
-
-
 PRODUCT_RECOMMENDER = """
 你的任务是根据用户信息从产品信息中选择合适的产品推荐给客户。
 
@@ -62,6 +59,7 @@ PRODUCT_RECOMMENDER = """
 推荐的产品，包括产品名称、推荐的依据
 """
 
+
 def recommend_product(llm: BaseChatModel):
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -77,4 +75,4 @@ def recommend_product(llm: BaseChatModel):
 def recommend_node(state, agent):
     result = agent.invoke(state)
     if result:
-        return {"messages": [AIMessage(content=result.content)],"product_list": result.content}
+        return {"messages": [AIMessage(content=result.content)], "product_list": result.content}
