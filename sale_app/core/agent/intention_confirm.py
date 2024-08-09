@@ -5,19 +5,10 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.runnables import RunnablePassthrough
 
 from sale_app.config.log import Logger
+from sale_app.core.prompt.chat_manager_prompt import INTENTION_SYSTEM_CONTENT
 from sale_app.util.history_formate import format_docs
 
 logger = Logger("fly_base")
-
-SYSTEM_CONTENT = """
-你是银行贷款营销经理，你的任务根据客户的聊天内容，能够判断客户是否存在贷款意图
-
-{history}
-用户最新的问题：{question}
-
-务必始终通过调用‘IntentionConfirm’函数进行回复。
-切勿以除函数意外的任何其他方式回复。
-"""
 
 
 class IntentionConfirm(BaseModel):
@@ -30,7 +21,7 @@ class IntentionConfirm(BaseModel):
 def intention_confirm(llm: BaseChatModel):
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("user", SYSTEM_CONTENT),
+            ("user", INTENTION_SYSTEM_CONTENT),
         ]
     )
     return RunnablePassthrough.assign(
@@ -49,4 +40,3 @@ def intention_node(state, agent, name):
     result = agent.invoke(state)
     if result:
         return {"pre_node": name, "next": "信息收集" if result.isIntention else "闲聊经理"}
-

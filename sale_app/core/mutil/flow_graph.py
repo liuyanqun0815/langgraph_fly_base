@@ -2,7 +2,6 @@ import functools
 import json
 import operator
 import os
-import re
 from typing import TypedDict, Annotated, List
 
 from langchain_core.messages import BaseMessage, AIMessage, ToolMessage, HumanMessage
@@ -14,7 +13,7 @@ from sale_app.core.agent.intention_confirm import intention_confirm, intention_n
 from sale_app.core.agent.other_agent import chat_manager, agent_node
 from sale_app.core.agent.qa_handle import qa_node, qa_agent
 from sale_app.core.mutil.fix_question import fix_question, fixed_question_node
-from sale_app.core.mutil.question_class_node import question_class_func
+from sale_app.core.agent.question_class_node import question_class_func
 from sale_app.core.moudel.zhipuai import ZhipuAI
 from sale_app.core.mutil.recommend_product_graph import re_graph
 from sale_app.config.log import Logger

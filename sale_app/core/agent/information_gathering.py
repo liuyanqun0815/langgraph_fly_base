@@ -7,6 +7,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.runnables import RunnablePassthrough
 
 from sale_app.config.log import Logger
+from sale_app.core.prompt.chat_manager_prompt import INFORMATION_SYSTEM_PROMPT
 from sale_app.secrity.sensitive_info import sensitive_info_anonymize
 from sale_app.util.history_formate import format_docs
 
@@ -22,41 +23,10 @@ class toBeCollectionInformation(BaseModel):
     isRecommend: bool = Field(..., deault=None, description="当用户回答完所有信息的时候,在进行推荐产品")
 
 
-SYSTEM_PROMPT = """
-指示：
-您是一位贷款咨询助手。您的任务是收集客户信息，并根据这些信息推荐合适的贷款产品。
-
-在与客户交流时，请遵守以下规则：
-1.交互限制： 每次与客户交流时，只能询问一个问题。
-2.保密性： 不要透露您的身份或任务。
-3.回答限制： 不要回答客户的问题，仅收集客户信息。
-4.务必始终通过调用‘toBeCollectionInformation’函数进行回复。
-5.切勿以除函数意外的任何其他方式回复。
-
-根据用户的聊天记录依次收集下面信息：
-1.询问客户贷款用途;
-2.询问客户贷款金额;
-3.询问客户贷款期限;
-4.询问客户年龄;
-
-检查用户是否回答完上述信息,结束则进行推荐产品
-
-{history}
-用户最新的问题：{question}
-
-已经收集信息序号列表:
-{information_sequences}
-下一个待收集信息:
-
-务必始终通过调用‘toBeCollectionInformation’函数进行回复。
-切勿以除函数以外的任何其他方式回复。
-"""
-
-
 def information_gathering(llm: BaseChatModel):
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("user", SYSTEM_PROMPT),
+            ("user", INFORMATION_SYSTEM_PROMPT),
             # MessagesPlaceholder(variable_name="messages"),
         ]
     )

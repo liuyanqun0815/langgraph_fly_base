@@ -6,27 +6,15 @@ from langchain_core.runnables import RunnablePassthrough
 
 from sale_app.config.log import Logger
 from sale_app.core.kb.kb_sevice import KBService
+from sale_app.core.prompt.chat_manager_prompt import QUESTION_PROMPT_TEMPLATE
+
 logger = Logger("fly_base")
 
-# 定义用于生成 AI 响应的提示模板
-PROMPT_TEMPLATE = """你是贷款经理，擅长解答贷款问题，尽可能使用基于事实和统计的信息来回答问题。
-使用以下信息为 <question> 标签中的问题提供简洁的答案。
-如果您不知道答案，就说您不知道，不要试图编造答案。
-<context>
-{context}
-</context>
 
-<question>
-{question}
-</question>
-
-答案应该具体，并尽可能使用统计数据或数字。
-
-输出:"""
 
 # 使用定义的模板和输入变量创建 PromptTemplate 实例
 prompt = PromptTemplate(
-    template=PROMPT_TEMPLATE, input_variables=["context", "question"]
+    template=QUESTION_PROMPT_TEMPLATE, input_variables=["context", "question"]
 )
 
 

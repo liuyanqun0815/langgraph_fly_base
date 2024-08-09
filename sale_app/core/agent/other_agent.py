@@ -3,7 +3,7 @@ from langchain_core.messages import AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 
 from sale_app.config.log import Logger
-from sale_app.core.prompt.chat_manager_prompt import SYSTEM_PROMPT
+from sale_app.core.prompt.chat_manager_prompt import OTHER_SYSTEM_PROMPT
 
 logger = Logger("fly_base")
 
@@ -12,7 +12,7 @@ logger = Logger("fly_base")
 def chat_manager(llm: BaseChatModel):
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", SYSTEM_PROMPT),
+            ("system", OTHER_SYSTEM_PROMPT),
             ("placeholder", "{messages}"),
         ]
     )

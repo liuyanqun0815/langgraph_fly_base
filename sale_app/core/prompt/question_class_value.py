@@ -9,7 +9,7 @@ SYSTEM_PROMPT = """
 输入文本在变量 input_text 中。类别在变量 categories 中指定为类别列表，其中包含两个字段 category_id 和 category_name。可以包含分类说明以提高分类准确性。
 ### 约束
 在您的响应中不要包含除 JSON 数组之外的任何内容。
-### 内存
+### 记忆
 这是人与助手之间的聊天记录，位于 <histories></histories> XML 标签内。
 <histories>
 {histories}
