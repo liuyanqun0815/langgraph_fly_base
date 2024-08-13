@@ -91,7 +91,8 @@ class MilvusVector(BaseVector):
 
         dense_index = {"index_type": "IVF_FLAT", "metric_type": "IP", "params": {"nlist": 128}}
         collection.create_index("dense_vector", dense_index)
-        sparse_index = {"index_type": "SPARSE_INVERTED_INDEX", "metric_type": "IP", "params": {"nlist": 128}}
+        # 在索引过程中要删除的小向量值的比例。
+        sparse_index = {"index_type": "SPARSE_INVERTED_INDEX", "metric_type": "IP", "params": {"nlist": 128,"drop_ratio_build": 0.2}}
         collection.create_index("sparse_vector", sparse_index)
         collection.flush()
 
@@ -134,7 +135,6 @@ class MilvusVector(BaseVector):
 
     def hybrid_search(self, query: str, **kwargs: Any) -> list[Document]:
         dense_embedding_func = self._embeddings
-        # sparse_embedding_func = BM25SparseEmbedding(language='zh', corpus=[query])
         sparse_search_params = {"metric_type": "IP"}
         dense_search_params = {"metric_type": "IP", "params": {}}
         dense_field = "dense_vector"

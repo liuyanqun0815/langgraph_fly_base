@@ -75,6 +75,14 @@ def upload_and_read_excel(request):
             KBService.parse_excel(excel_file, collection_name)
     return JsonResponse({'data': 'sucess'})
 
+@csrf_exempt
+def text_insert_milvus(request):
+    if request.method == 'POST':
+        text = request.POST.get('text')
+        collection_name = request.GET.get("collection_name")
+        KBService.text_insert(text, collection_name)
+    return JsonResponse({'data': 'sucess'})
+
 
 @csrf_exempt
 def hybrid_search(request):
