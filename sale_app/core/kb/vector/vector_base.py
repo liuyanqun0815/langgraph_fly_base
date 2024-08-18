@@ -19,6 +19,10 @@ class BaseVector(ABC):
     def create_collection(self,collection_name:str):
         raise NotImplementedError
 
+    @abstractmethod
+    def has_collection(self, collection_name: str):
+        raise NotImplementedError
+
 
     @abstractmethod
     def add_documents(self, documents: list[Document]):

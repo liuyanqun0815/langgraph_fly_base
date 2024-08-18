@@ -79,7 +79,7 @@ def upload_and_read_excel(request):
 def text_insert_milvus(request):
     if request.method == 'POST':
         text = request.POST.get('text')
-        collection_name = request.GET.get("collection_name")
+        collection_name = request.POST.get("collection_name")
         KBService.text_insert(text, collection_name)
     return JsonResponse({'data': 'sucess'})
 

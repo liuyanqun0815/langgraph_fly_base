@@ -5,6 +5,7 @@ from langchain_milvus.retrievers import MilvusCollectionHybridSearchRetriever
 from langchain_milvus.vectorstores import Milvus
 from langchain_core.documents import Document
 from pymilvus import FieldSchema, DataType, CollectionSchema, Collection, connections, WeightedRanker
+from pymilvus.orm import utility
 from scipy.sparse import csr_array  # type: ignore
 
 from config import MilvusConfig
@@ -54,6 +55,9 @@ class MilvusVector(BaseVector):
 
     def get_type(self) -> str:
         return VectorType.MILVUS
+
+    def has_collection(self, collection_name: str):
+        return utility.has_collection(collection_name)
 
     def create_collection(self, collection_name: str):
         self._collection_name = collection_name
@@ -120,12 +124,12 @@ class MilvusVector(BaseVector):
                 dense_field: dense_embedding_func.embed_documents([doc.page_content])[0],
                 sparse_field: splade_ef.embed_documents([doc.page_content])[0],
                 page_content: doc.page_content,
-                metadata: {
-                    "question": doc.metadata.get("question"),
-                    "answer": doc.metadata.get("answer"),
-                },
+                metadata: doc.metadata,
             }
             entities.append(entity)
+
+        if self.has_collection(self._collection_name) is False:
+            self.create_collection(self._collection_name)
 
         collection = Collection(
             name=self._collection_name, consistency_level="Session"
