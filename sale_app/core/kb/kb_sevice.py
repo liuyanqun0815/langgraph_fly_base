@@ -50,13 +50,13 @@ class KBService:
         results_json = json.dumps(results, ensure_ascii=False, indent=4)
         # 将JSON字符串转换回字典
         results_dict = json.loads(results_json)
-        metadata = results_dict
+        metadata = text
         # 删除指定的key
         key_to_remove = "产品名称"
         if key_to_remove in results_dict:
             # metadata['product_name'] = results_dict[key_to_remove]
             del results_dict[key_to_remove]
-        key_to_remove = "产品特色"
+        key_to_remove = "贷款特色"
         if key_to_remove in results_dict:
             # metadata['product_feature'] = results_dict[key_to_remove]
             del results_dict[key_to_remove]
