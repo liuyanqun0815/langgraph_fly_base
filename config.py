@@ -14,6 +14,8 @@ DEFAULTS = {
     'MILVUS_PORT': 19530,
     'MILVUS_PASSWORD': None,
     'MILVUS_DATABASE': 'default',
+    # 推荐集合默认配置
+    'RECOMMEND_COLLECTION_NAME': 'recommend_product',
     'QDRANT_URL': 'localhost',
     'QDRANT_PORT': 6333,
     'QDRANT_API_KEY': None,
@@ -55,3 +57,7 @@ class MilvusConfig:
 
 def get_env(key):
     return os.environ.get(key, DEFAULTS.get(key))
+
+
+def recommend_collection_name():
+    return get_env('RECOMMEND_COLLECTION_NAME')

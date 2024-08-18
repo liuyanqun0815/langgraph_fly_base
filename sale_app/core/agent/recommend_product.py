@@ -35,10 +35,15 @@ def recommend_product(llm: BaseChatModel):
             ("user", PRODUCT_RECOMMENDER_SYSTEM),
         ]
     )
-    return RunnablePassthrough.assign(
-        user_info=lambda x: x.get('user_info', {}),
-        product_info_list=lambda x: get_product_info(),
-    ) | prompt | llm
+    # 使用RunnablePassthrough来传递数据
+    return (
+            RunnablePassthrough.assign(
+                user_info=lambda x: x.get('user_info', {}),
+                product_info_list=lambda x: get_product_info(x['user_info']),
+            )
+            | prompt
+            | llm
+    )
 
 
 def recommend_node(state, agent, name):

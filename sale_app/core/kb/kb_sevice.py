@@ -3,6 +3,7 @@ import re
 
 from langchain_core.documents import Document
 
+from config import recommend_collection_name
 from sale_app.config.log import Logger
 from sale_app.core.kb.loader.excel_loader import xlsx_loader
 from sale_app.core.kb.vector.vector_factory import Vector
@@ -30,7 +31,7 @@ class KBService:
         vector.vector_processor.hybrid_add_documents(docs)
 
     @classmethod
-    def text_insert(cls, text: str, collection_name: str = 'test_json'):
+    def text_insert(cls, text: str, collection_name: str = recommend_collection_name()):
         logger.info(f'text_insert:{text},collection_name:{collection_name}')
         # 使用正则表达式提取各个字段
         results = {
