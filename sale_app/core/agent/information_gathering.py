@@ -23,6 +23,9 @@ class toBeCollectionInformation(BaseModel):
     isRecommend: bool = Field(..., deault=None, description="当用户回答完所有信息的时候,在进行推荐产品")
 
 
+information_count = 4
+
+
 def information_gathering(llm: BaseChatModel):
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -35,6 +38,7 @@ def information_gathering(llm: BaseChatModel):
         history=lambda x: format_docs(x.get('history', [])),
         question=lambda x: x['question'],  # 直接传递 question 参数
         information_sequences=lambda x: x['information_sequences'],
+        information_count=lambda x: information_count,
     ) | prompt | llm.with_structured_output(toBeCollectionInformation)
 
 
@@ -50,9 +54,14 @@ def information_node(state, agent, name):
             logger.info(f"{name}节点信息:{last_message.content},脱敏后信息：{state['question']}")
     result = agent.invoke(state)
     if result:
+        recommend = True if result.information is '' and result.isRecommend else False
+        if recommend is False:
+            logger.info(f"{name}节点信息:{result}")
+            recommend = True if result.sequence >= information_count else False
         return {"messages": [AIMessage(content=result.information)],
                 "information_sequences": [result.sequence],
                 "pre_node": name,
-                "isRecommend": result.isRecommend}
+                "isRecommend": recommend
+                }
     else:
         print("信息收集返回为空")

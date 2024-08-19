@@ -31,6 +31,7 @@ INFORMATION_SYSTEM_PROMPT = """
 {history}
 用户最新的问题：{question}
 
+信息总数：{information_count}
 已经收集信息序号列表:
 {information_sequences}
 下一个待收集信息:
@@ -74,9 +75,10 @@ USER_EXTRACT_SYSTEM_CONTENT = """
 请分析这段聊天内容
 {history}
 
-从中提取用户信息
+按照下面维度指标提取用户信息
+[用户年龄、个人贷款还是经营贷、贷款额度、贷款期限、贷款用途]
 
-如果聊天记录为空，请输出“暂无用户信息”
+如果获取不到上述信息，请输出“暂无用户信息”
 """
 
 # 产品推荐
