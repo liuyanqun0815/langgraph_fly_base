@@ -5,7 +5,7 @@
 
 ### 方案设计:
 
-![langchain.drawio.png](docs%2Flangchain.drawio.png)
+![langchain.drawio.png](docs%2Flangchain_all.drawio.png)
 
 **项目使用的web框架：django**
 
@@ -31,6 +31,13 @@ milvus可视化页面![img_1.png](docs%2Fimg_1.png)
 
 
 后续继续会集成drant和weaviate
+
+## [推荐系统](https://juejin.cn/post/7402137644372344844)
+基于内容推荐的算法，通过向量检索相似度方式获取推荐结果。
+
+我们提取用户多维度的喜好标签和物品多维度的标签进行向量化进行存储， 特征向量化常用稀疏向量模型（SPLADE）进行。
+
+另外也可以同时用稠密向量，使用混合检索，对查询的结果重排序权重稀疏向量大些
 
 ## 步骤:
 1. 创建项目

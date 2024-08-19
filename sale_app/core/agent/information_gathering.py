@@ -54,7 +54,7 @@ def information_node(state, agent, name):
             logger.info(f"{name}节点信息:{last_message.content},脱敏后信息：{state['question']}")
     result = agent.invoke(state)
     if result:
-        recommend = True if result.information is '' and result.isRecommend else False
+        recommend = True if result.information == '' and result.isRecommend else False
         if recommend is False:
             logger.info(f"{name}节点信息:{result}")
             recommend = True if result.sequence >= information_count else False
