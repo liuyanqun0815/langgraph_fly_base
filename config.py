@@ -22,7 +22,9 @@ DEFAULTS = {
     'QDRANT_TYPE': 'memory',
     'QDRANT_DISK_PATH': '/opt/local_qdrant',
     'QDRANT_COLLECTION_NAME': 'sale_app',
-    'QDRANT_VECTOR_DIMENSIONS': 1024
+    'QDRANT_VECTOR_DIMENSIONS': 1024,
+
+    'SERVICE_API_URL': '=http://127.0.0.1:5001'
 }
 
 

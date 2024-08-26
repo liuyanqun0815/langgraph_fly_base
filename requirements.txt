@@ -19,3 +19,6 @@ langchain_qdrant
 weaviate-client
 langchain_milvus
 pymilvus[model]
+docx
+xlrd
+unstructured[docx]~=0.10.27

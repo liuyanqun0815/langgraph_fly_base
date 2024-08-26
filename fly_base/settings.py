@@ -128,7 +128,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # 文件的URL
-MEDIA_URL = '/kb_file/'
-
+MEDIA_URL = 'storage/kb_file/'
+IMAGE_URL = 'storage/image_file/'
 # 媒体文件存储的根目录
-KB_FILE_ROOT = os.path.join(BASE_DIR, 'kb_file/')
+KB_FILE_ROOT = os.path.join(BASE_DIR, 'storage/kb_file/')

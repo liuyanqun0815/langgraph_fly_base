@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 
 from sale_app.chat_api.api import to_chat
+from sale_app.chat_api.file import image_preview
 from sale_app.chat_api.kb_api import upload_file, create_index, search, create_collection_api, upload_and_read_excel, \
     hybrid_search, keyword_search, text_insert_milvus
 
@@ -31,5 +32,6 @@ urlpatterns = [
     path('kb/upload_and_read_excel', upload_and_read_excel),
     path('kb/hybrid_search', hybrid_search),
     path('kb/keyword_search', keyword_search),
-    path('kb/text_insert_milvus',text_insert_milvus)
+    path('kb/text_insert_milvus',text_insert_milvus),
+    path('file/image-preview/<str:fileName>', image_preview, name='image_preview'),
 ]

@@ -21,7 +21,6 @@ splade_ef = SpladeEmbeddingModel()
 logger = Logger("fly_base")
 
 
-
 class MilvusVector(BaseVector):
 
     def __init__(self, collection_name: str, config: MilvusConfig):
@@ -67,6 +66,7 @@ class MilvusVector(BaseVector):
         question = "question"
         answer = "answer"
         page_content = "page_content"
+        partition_key = "partition_key"
         metadata = "metadata"
         fields = [
             FieldSchema(
@@ -79,11 +79,11 @@ class MilvusVector(BaseVector):
             FieldSchema(name=dense_field, dtype=DataType.FLOAT_VECTOR, dim=self._dimension),
             FieldSchema(name=sparse_field, dtype=DataType.SPARSE_FLOAT_VECTOR),
             FieldSchema(name=page_content, dtype=DataType.VARCHAR, max_length=65_535),
+            FieldSchema(name=partition_key, dtype=DataType.VARCHAR, max_length=64),
             FieldSchema(name=metadata, dtype=DataType.JSON),
-            # FieldSchema(name=answer, dtype=DataType.VARCHAR, max_length=65_535),
         ]
 
-        schema = CollectionSchema(fields=fields, enable_dynamic_field=False)
+        schema = CollectionSchema(fields=fields, enable_dynamic_field=True, partition_key_field=partition_key)
 
         from pymilvus import utility
         if utility.has_collection(collection_name):
@@ -96,8 +96,11 @@ class MilvusVector(BaseVector):
         dense_index = {"index_type": "IVF_FLAT", "metric_type": "IP", "params": {"nlist": 128}}
         collection.create_index("dense_vector", dense_index)
         # 在索引过程中要删除的小向量值的比例。
-        sparse_index = {"index_type": "SPARSE_INVERTED_INDEX", "metric_type": "IP", "params": {"nlist": 128,"drop_ratio_build": 0.2}}
+        sparse_index = {"index_type": "SPARSE_INVERTED_INDEX", "metric_type": "IP",
+                        "params": {"nlist": 128, "drop_ratio_build": 0.2}}
         collection.create_index("sparse_vector", sparse_index)
+
+        collection.create_index(partition_key, {"index_type": "Trie"})
         collection.flush()
 
     def add_documents(self, documents: list[Document]):

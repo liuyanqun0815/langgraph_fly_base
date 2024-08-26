@@ -11,19 +11,6 @@ from sale_app.core.kb.vector.vector_factory import Vector
 logger = Logger("fly_base")
 
 
-def _parse_to_dict(text: str):
-    # 定义正则表达式模式匹配
-    pattern = r'([^：]+)：([^。]+。)'
-
-    # 使用正则表达式查找所有符合模式的内容
-    matches = re.findall(pattern, text)
-
-    # 将结果转化为字典
-    parsed_dict = {key.strip(): value.strip() for key, value in matches}
-
-    return parsed_dict
-
-
 class KBService:
 
     def similarity_search(query: str, collection_name: str = 'test_json'):
