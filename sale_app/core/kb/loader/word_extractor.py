@@ -66,9 +66,10 @@ class WordExtractor(BaseExtractor):
             list[Document]: 包含页面内容和元数据的文档列表。
         """
         content = self.parse_docx(self.file_path, 'storage')
+        file_name = os.path.basename(self.file_path).split('.')[0]
         return [Document(
             page_content=content,
-            metadata={"source": self.file_path},
+            metadata={"source": self.file_path, "file_name": file_name},
         )]
 
     # 静态方法，用于检查 URL 是否有效

@@ -1,3 +1,4 @@
+import os
 from collections.abc import Iterator
 
 from langchain_core.documents import Document
@@ -64,6 +65,7 @@ class PdfExtractor(BaseExtractor):
             一个生成器，每个生成的Document对象包含从blob中提取的一页PDF内容。
         """
         import pypdfium2
+        file_name = os.path.basename(self._file_path).split('.')[0]
 
         with blob.as_bytes_io() as file_path:
             pdf_reader = pypdfium2.PdfDocument(file_path, autoclose=True)
@@ -73,7 +75,7 @@ class PdfExtractor(BaseExtractor):
                     content = text_page.get_text_range()
                     text_page.close()
                     page.close()
-                    metadata = {"source": blob.source, "page": page_number}
+                    metadata = {"source": blob.source, "page": page_number, 'file_name': file_name}
                     yield Document(page_content=content, metadata=metadata)
             finally:
                 pdf_reader.close()

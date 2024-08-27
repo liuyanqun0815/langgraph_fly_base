@@ -1,5 +1,7 @@
 import os
 
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -49,7 +51,8 @@ def create_index(request):
 def search(request):
     query = request.GET.get('query')
     collection_name = request.GET.get("collection_name")
-    data = KBService.similarity_search(query, collection_name)
+    file_name = request.GET.get("file_name")
+    data = KBService.similarity_search(query, collection_name, file_name)
     json = {
         "data": data.__str__()
     }
@@ -72,7 +75,14 @@ def upload_and_read_excel(request):
         if form.is_valid():
             excel_file = request.FILES['excel_file']
             collection_name = request.GET.get("collection_name")
-            KBService.parse_excel(excel_file, collection_name)
+            # 使用 FileSystemStorage 来保存文件到指定目录
+            fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'kb_file'))
+            filename = fs.save(excel_file.name, excel_file)
+            # 获取文件的URL路径
+            # fs.base_location = settings.MEDIA_ROOT
+            # file_url = fs.url(filename)
+            absolute_path = os.path.join(fs.base_location, filename)
+            KBService.parse_excel(absolute_path, collection_name)
     return JsonResponse({'data': 'sucess'})
 
 

@@ -29,6 +29,8 @@
 
 milvus可视化页面![img_1.png](docs%2Fimg_1.png)
 
+**milvus使用分区键来区分每个文件**，检索的时候通过分区键进行过滤，提高检索效率
+
 
 后续继续会集成drant和weaviate
 
@@ -68,6 +70,7 @@ docker-compose -f milvus-standalone-docker-compose.yml -p fly up -d
 3. 2024-07-28: 添加milvus支持，docker部署
 4. 2024-08-07: milvus支持混合检索（稠密向量检索+稀疏向量检索-Splade）
 5. 2024-08-09: 问题分类节点重构，信息脱敏节点重构
+6. 2024-08-27: milvus支持分区键过滤，解决不同文件（内容类似）上传知识库，相似度检索内容交叉污染的问题
 
 ```
 ## 文章

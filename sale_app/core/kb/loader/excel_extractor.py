@@ -1,5 +1,6 @@
 """Abstract interface for document loader implementations."""
 import logging
+import os
 from typing import Optional
 
 import pandas as pd
@@ -53,7 +54,7 @@ class ExcelExtractor(BaseExtractor):
         wb = xlrd.open_workbook(filename=self._file_path)
         logger.info(f'_extract4xls file path:{self._file_path}')
         documents = []
-
+        file_name = os.path.basename(self._file_path).split('.')[0]
         # 遍历所有工作表
         for sheet in wb.sheets():
             logger.info(f'sheet name:{sheet.name}')
@@ -73,7 +74,7 @@ class ExcelExtractor(BaseExtractor):
                     item_arr.append(f'{row_header[index].value}:{txt_value}')
                 item_str = "\n".join(item_arr)
                 logger.info(f'item_str:{item_str}')
-                document = Document(page_content=item_str, metadata={'source': self._file_path})
+                document = Document(page_content=item_str, metadata={'source': self._file_path, 'file_name': file_name})
                 documents.append(document)
         return documents
 
@@ -88,6 +89,7 @@ class ExcelExtractor(BaseExtractor):
 
         # 使用Pandas读取Excel文件中的每个工作表
         xls = pd.ExcelFile(self._file_path)
+        file_name = os.path.basename(self._file_path).split('.')[0]
         for sheet_name in xls.sheet_names:
             df = pd.read_excel(xls, sheet_name=sheet_name)
 
@@ -97,7 +99,7 @@ class ExcelExtractor(BaseExtractor):
             # 将每一行转换为Document对象
             for _, row in df.iterrows():
                 item = ';'.join(f'{k}:{v}' for k, v in row.items() if pd.notna(v))
-                document = Document(page_content=item, metadata={'source': self._file_path})
+                document = Document(page_content=item, metadata={'source': self._file_path, 'file_name': file_name})
                 data.append(document)
         return data
 

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from langchain_core.embeddings import Embeddings
 
-from config import  get_env
+from config import get_env
 
 from sale_app.core.kb.vector.vector_base import BaseVector
 from sale_app.core.kb.vector.vector_type import VectorType
@@ -11,14 +11,14 @@ from sale_app.core.moudel.zhipuai import ZhipuAI
 
 class AbstractVectorFactory(ABC):
     @abstractmethod
-    def init_vector(self, collection_name: str = None) -> BaseVector:
+    def init_vector(self, collection_name: str = None, **kwargs) -> BaseVector:
         raise NotImplementedError
 
 
-
 class Vector:
-    def __init__(self, collection_name: str = None):
+    def __init__(self, collection_name: str = None, partition_key: str = None):
         self._collection_name = collection_name
+        self._partition_key = partition_key
         self.vector_processor = self._init_vector()
 
     def _init_vector(self) -> BaseVector:
@@ -28,7 +28,7 @@ class Vector:
             raise ValueError("向量存储类型未设置.")
 
         vector_factory_cls = self.get_vector_factory(vector_type)
-        return vector_factory_cls().init_vector(self._collection_name)
+        return vector_factory_cls().init_vector(self._collection_name, partition_key=self._partition_key)
 
     @staticmethod
     def get_vector_factory(vector_type: str) -> type[AbstractVectorFactory]:
@@ -42,4 +42,3 @@ class Vector:
             #     return WeaviateVectorFactory
             case _:
                 raise ValueError(f"不支持的向量存储类型: {vector_type} ")
-

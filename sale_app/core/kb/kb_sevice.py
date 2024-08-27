@@ -5,6 +5,7 @@ from langchain_core.documents import Document
 
 from config import recommend_collection_name
 from sale_app.config.log import Logger
+from sale_app.core.kb.loader.excel_extractor import ExcelExtractor
 from sale_app.core.kb.loader.excel_loader import xlsx_loader
 from sale_app.core.kb.vector.vector_factory import Vector
 
@@ -13,19 +14,23 @@ logger = Logger("fly_base")
 
 class KBService:
 
-    def similarity_search(query: str, collection_name: str = 'test_json'):
-        vector = Vector(collection_name=collection_name)
+    @classmethod
+    def similarity_search(cls, query: str, collection_name: str = 'test_json', file_name: str = None):
+        vector = Vector(collection_name=collection_name, partition_key=file_name)
         return vector.vector_processor.search_by_vector(query)
 
-    def create_collection(collection_name: str):
+    @classmethod
+    def create_collection(cls, collection_name: str):
         vector = Vector()
         return vector.vector_processor.create_collection(collection_name)
 
     @classmethod
     def parse_excel(cls, excel_file, collection_name: str = 'test_json'):
-        excel_data = xlsx_loader(excel_file)
-        docs = [Document(page_content=doc['question'],
-                         metadata={'question': doc['question'], 'answer': doc['answer']}) for doc in excel_data]
+        # excel_data = xlsx_loader(excel_file)
+        # docs = [Document(page_content=doc['question'],
+        #                  metadata={'question': doc['question'], 'answer': doc['answer']}) for doc in excel_data]
+        extractor = ExcelExtractor(excel_file)
+        docs = extractor.extract()
         vector = Vector(collection_name=collection_name)
         # docs = docs[:1]
         vector.vector_processor.hybrid_add_documents(docs)
