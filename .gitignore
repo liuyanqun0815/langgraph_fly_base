@@ -19,4 +19,4 @@ etcd/
 milvus/
 minio/
 qdrant/
-memory_file/
+storage/

@@ -21,7 +21,7 @@ from sale_app.util.file_utils import find_project_root
 
 llm = ZhipuAI().openai_chat()
 
-memory = SqliteSaver.from_conn_string(find_project_root(os.path.abspath(__file__)) + "/memory_file/chat_history.db")
+memory = SqliteSaver.from_conn_string(find_project_root(os.path.abspath(__file__)) + "/storage/memory_file/chat_history.db")
 logger = Logger("fly_base")
 
 def super_agent_node(state, agent, name):
