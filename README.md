@@ -16,7 +16,7 @@
 ## 知识库页面
 项目启动成功
 访问地址：http://127.0.0.1:8000/kb/upload_file
-![kb_page.png](docs%2Fkb_page.png)![知识库.png](docs%2F%D6%AA%CA%B6%BF%E2.png)
+![kb_page.png](docs%2Fkb_page.png)
 
 ## **工作流**：
 方案里面的敏感词汇考虑到相对独立，没有设计到工作流中，信息脱敏只对信息收集阶段进行脱敏，其他阶段不脱敏
