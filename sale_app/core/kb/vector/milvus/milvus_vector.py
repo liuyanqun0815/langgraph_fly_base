@@ -25,7 +25,7 @@ class MilvusVector(BaseVector):
     DENSE_FIELD = "dense_vector"
     SPARSE_FIELD = "sparse_vector"
     PAGE_CONTENT = "page_content"
-    PARTITION_KEY = "partition_key"
+    PARTITION_KEY = "file_name"
     METADATA = "metadata"
 
     def __init__(self, collection_name: str, config: MilvusConfig, partition_key: str = None, ):
@@ -137,6 +137,8 @@ class MilvusVector(BaseVector):
         collection.load()
 
     def hybrid_search(self, query: str, **kwargs: Any) -> list[Document]:
+        partition_key = kwargs.get("partition_key", self._partition_key)
+        logger.info(f"混合搜索，请求参数：{query},分区键内容:{partition_key}")
         dense_embedding_func = self._embeddings
         sparse_search_params = {"metric_type": "IP"}
         dense_search_params = {"metric_type": "IP", "params": {}}
@@ -147,18 +149,29 @@ class MilvusVector(BaseVector):
         collection = Collection(
             name=self._collection_name, consistency_level="Session"
         )
-
-        retriever = MilvusCollectionHybridSearchRetriever(
-            collection=collection,
-            rerank=WeightedRanker(0.5, 0.5),
-            anns_fields=[dense_field, sparse_field],
-            field_embeddings=[dense_embedding_func, splade_ef],
-            field_search_params=[dense_search_params, sparse_search_params],
-            top_k=3,
-            text_field=text_field,
-        )
+        if partition_key is None or partition_key == "":
+            retriever = MilvusCollectionHybridSearchRetriever(
+                collection=collection,
+                rerank=WeightedRanker(0.8, 0.2),
+                anns_fields=[MilvusVector.DENSE_FIELD, MilvusVector.SPARSE_FIELD],
+                field_embeddings=[dense_embedding_func, splade_ef],
+                field_search_params=[dense_search_params, sparse_search_params],
+                top_k=3,
+                text_field=text_field,
+            )
+        else:
+            retriever = MilvusCollectionHybridSearchRetriever(
+                collection=collection,
+                rerank=WeightedRanker(0.8, 0.2),
+                anns_fields=[dense_field, sparse_field],
+                field_embeddings=[dense_embedding_func, splade_ef],
+                field_search_params=[dense_search_params, sparse_search_params],
+                top_k=3,
+                text_field=text_field,
+                field_exprs=[f"{MilvusVector.PARTITION_KEY} like '%{partition_key}%'"] * 2
+            )
         results = retriever.invoke(query)
-
+        logger.info(f"混合搜索，返回内容：{results}")
         docs = []
         for result in results:
             doc = Document(page_content=result.page_content,
@@ -179,11 +192,11 @@ class MilvusVector(BaseVector):
             results = self.milvus_store.similarity_search_with_score(
                 query=query,
                 k=2,
-                filter=f"{MilvusVector.PARTITION_KEY} == '{partition_key}'",
+                expr=f"{MilvusVector.PARTITION_KEY} like '%{partition_key}%'",
                 search_params={"metric_type": "L2", "params": {"nprobe": 10}},
-
             )
         docs = []
+        logger.info(f"语义检索检索结果：{results}")
         for result in results:
             doc = Document(page_content=result[0].page_content,
                            metadata=result[0].metadata.get("metadata"))
@@ -191,6 +204,7 @@ class MilvusVector(BaseVector):
         return docs
 
     def search_by_keyword(self, query: str, **kwargs: Any) -> list[Document]:
+        partition_key = kwargs.get("partition_key", self._partition_key)
 
         collection = Collection(
             name=self._collection_name, consistency_level="Session"
@@ -204,17 +218,27 @@ class MilvusVector(BaseVector):
         }
         embedding = splade_ef.embed_query(query)
         # 稀疏向量检索
-        results = collection.search(
-            data=[embedding],  # 查询向量
-            anns_field="sparse_vector",  # 稀疏向量字段名
-            param=search_params,  # 搜索参数
-            limit=3,  # 返回的向量个数
-            output_fields=["page_content", "metadata"]  # 返回的字段列表
-        )
+        if partition_key is None or partition_key == "":
+            results = collection.search(
+                data=[embedding],  # 查询向量
+                anns_field="sparse_vector",  # 稀疏向量字段名
+                param=search_params,  # 搜索参数
+                limit=3,  # 返回的向量个数
+                output_fields=["page_content", "metadata"]  # 返回的字段列表
+            )
+        else:
+            results = collection.search(
+                data=[embedding],  # 查询向量
+                anns_field="sparse_vector",  # 稀疏向量字段名
+                param=search_params,  # 搜索参数
+                limit=3,  # 返回的向量个数
+                output_fields=["page_content", "metadata"] , # 返回的字段列表
+                expr=f"{MilvusVector.PARTITION_KEY} like '%{partition_key}%'"
+            )
         docs = []
         for result in results:
             for hit in result:
-                print(f"hit: {hit}")
+                logger.info(f"hit: {hit}")
                 doc = Document(page_content=hit.fields['page_content'],
                                metadata=hit.fields['metadata'])
                 docs.append(doc)

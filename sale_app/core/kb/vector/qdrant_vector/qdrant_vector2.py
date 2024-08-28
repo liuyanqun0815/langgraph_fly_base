@@ -56,23 +56,3 @@ def _client():
         timeout=15
     )
 
-
-def create_collection(collection_name: str = None):
-    qdrant_config = QdrantConfig()
-
-    if not collection_name:
-        logger.error(f"集合名称不能为空")
-        raise ValueError(
-            "集合名称不能为空"
-        )
-    client = _client()
-    # 创建集合，维度暂时固定1024，后面在通过传参遍历设置
-    vectors_config = VectorParams(
-        size=qdrant_config.vector_dimensions,
-        distance=Distance.COSINE,
-    )
-    client.create_collection(
-        collection_name=collection_name,
-        vectors_config=vectors_config,
-    )
-    logger.info(f"创建集合{collection_name}成功")

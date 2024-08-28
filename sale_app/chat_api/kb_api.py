@@ -7,9 +7,9 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from .forms.excel_form import ExcelUploadForm
+from .forms.file_upload_form import FileUploadForm
 
 from ..config.log import Logger
-from sale_app.core.kb.vector.qdrant_vector.qdrant_vector2 import create_collection
 from ..core.kb.kb_sevice import KBService
 from ..core.kb.xlsx_qa_view import xlsx_qa_upload
 
@@ -22,9 +22,9 @@ class DocumentForm:
 
 
 @csrf_exempt
-def upload_file(request):
+def upload(request):
     if request.method == 'POST':
-        form = DocumentForm(request.POST, request.FILES)
+        form = FileUploadForm(request.POST, request.FILES)
         if form.is_valid():
             file_doc = request.FILES['document']
             file_extension = os.path.splitext(file_doc.name)[1].lower()
@@ -39,12 +39,22 @@ def upload_file(request):
 
 
 @csrf_exempt
-def create_index(request):
-    collection_name = request.GET.get("collection_name")
-    if not collection_name:
-        return HttpResponse("collection_name is null")
-    create_collection(collection_name)
-    return HttpResponse("create index success")
+def upload_file(request):
+    if request.method == 'POST':
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            excel_file = request.FILES['document']
+            collection_name = request.POST.get("collection_name")
+            # 使用 FileSystemStorage 来保存文件到指定目录
+            fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'kb_file'))
+            filename = fs.save(excel_file.name, excel_file)
+            # 获取文件的URL路径
+            absolute_path = os.path.join(fs.base_location, filename)
+            KBService.parse(absolute_path, collection_name)
+            return HttpResponse('文件上传成功！')
+    # else:
+    # form = DocumentForm()
+    return render(request, 'upload_document.html')
 
 
 @csrf_exempt
@@ -61,11 +71,13 @@ def search(request):
 
 @csrf_exempt
 def create_collection_api(request):
-    collection_name = request.GET.get("collection_name")
-    if not collection_name:
-        return HttpResponse("collection_name is null")
-    KBService.create_collection(collection_name)
-    return HttpResponse("create index success")
+    if request.method == 'POST':
+        collection_name = request.POST.get("collection_name")
+        if not collection_name:
+            return HttpResponse("collection_name is null")
+        KBService.create_collection(collection_name)
+
+    return render(request, 'create_collection.html')
 
 
 @csrf_exempt
@@ -99,7 +111,9 @@ def text_insert_milvus(request):
 def hybrid_search(request):
     query = request.GET.get('query')
     collection_name = request.GET.get("collection_name")
-    data = KBService.hybrid_search(query, collection_name)
+    file_name = request.GET.get("file_name")
+
+    data = KBService.hybrid_search(query, collection_name, file_name)
     json = {
         "data": data.__str__()
     }
@@ -110,7 +124,9 @@ def hybrid_search(request):
 def keyword_search(request):
     query = request.GET.get('query')
     collection_name = request.GET.get("collection_name")
-    data = KBService.keyword_search(query, collection_name)
+    file_name = request.GET.get("file_name")
+
+    data = KBService.keyword_search(query, collection_name, file_name)
     json = {
         "data": data.__str__()
     }

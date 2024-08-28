@@ -7,6 +7,8 @@ from config import recommend_collection_name
 from sale_app.config.log import Logger
 from sale_app.core.kb.loader.excel_extractor import ExcelExtractor
 from sale_app.core.kb.loader.excel_loader import xlsx_loader
+from sale_app.core.kb.loader.pdf_extractor import PdfExtractor
+from sale_app.core.kb.loader.word_extractor import WordExtractor
 from sale_app.core.kb.vector.vector_factory import Vector
 
 logger = Logger("fly_base")
@@ -25,11 +27,39 @@ class KBService:
         return vector.vector_processor.create_collection(collection_name)
 
     @classmethod
+    def parse(cls, excel_file, collection_name: str = 'test_json'):
+        # excel_data = xlsx_loader(excel_file)
+        # docs = [Document(page_content=doc['question'],
+        #                  metadata={'question': doc['question'], 'answer': doc['answer']}) for doc in excel_data]
+        # 根据文件后缀识别文件类型
+        if excel_file.endswith('.xls') or excel_file.endswith('.xlsx'):
+            extractor = ExcelExtractor(excel_file)
+        elif excel_file.endswith('.pdf'):
+            extractor = PdfExtractor(excel_file)
+        elif excel_file.endswith('.docx'):
+            extractor = WordExtractor(excel_file)
+        else:
+            raise ValueError("不支持的文件格式")
+        docs = extractor.extract()
+        vector = Vector(collection_name=collection_name)
+        # docs = docs[:1]
+        vector.vector_processor.hybrid_add_documents(docs)
+
+
+    @classmethod
     def parse_excel(cls, excel_file, collection_name: str = 'test_json'):
         # excel_data = xlsx_loader(excel_file)
         # docs = [Document(page_content=doc['question'],
         #                  metadata={'question': doc['question'], 'answer': doc['answer']}) for doc in excel_data]
-        extractor = ExcelExtractor(excel_file)
+        # 根据文件后缀识别文件类型
+        if excel_file.endswith('.xls') or excel_file.endswith('.xlsx'):
+            extractor = ExcelExtractor(excel_file)
+        elif excel_file.endswith('.pdf'):
+            extractor = PdfExtractor(excel_file)
+        elif excel_file.endswith('.docx'):
+            extractor = WordExtractor(excel_file)
+        else:
+            raise ValueError("不支持的文件格式")
         docs = extractor.extract()
         vector = Vector(collection_name=collection_name)
         # docs = docs[:1]
@@ -92,11 +122,11 @@ class KBService:
         return parsed_dict
 
     @classmethod
-    def hybrid_search(cls, query, collection_name: str = 'test_json'):
-        vector = Vector(collection_name=collection_name)
+    def hybrid_search(cls, query, collection_name: str = 'test_json', file_name: str = None):
+        vector = Vector(collection_name=collection_name, partition_key=file_name)
         return vector.vector_processor.hybrid_search(query)
 
     @classmethod
-    def keyword_search(cls, query: str, collection_name: str = 'test_json'):
-        vector = Vector(collection_name=collection_name)
+    def keyword_search(cls, query: str, collection_name: str = 'test_json', file_name: str = None):
+        vector = Vector(collection_name=collection_name, partition_key=file_name)
         return vector.vector_processor.search_by_keyword(query)

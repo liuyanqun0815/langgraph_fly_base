@@ -1,0 +1,62 @@
+/* 导航栏样式 */
+nav {
+    text-align: center; /* 导航栏居中 */
+    background-color: #333;
+    padding: 10px 0; /* 上下留出一些间距 */
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: inline-block; /* 将导航链接块居中 */
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 20px; /* 导航链接之间的间距 */
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    display: inline-block;
+}
+
+nav ul li a:hover {
+    background-color: #555;
+}
+
+/* 内容区域样式 */
+.content {
+    text-align: center; /* 内容居中 */
+    padding: 50px; /* 上下左右留出一些间距 */
+}
+
+/* 页面样式 */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 40vh;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+p {
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+/* 确保内容区域居中且页面充满屏幕高度 */
+.content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
