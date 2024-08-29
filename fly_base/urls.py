@@ -27,7 +27,7 @@ from sale_app.chat_api.kb_api import upload_file, search, create_collection_api,
 urlpatterns = [
     # path("admin/", admin.site.urls),
     path("api/chat", to_chat, name='chat'),
-    path('kb/upload', upload, name='upload'),
+    # path('kb/upload', upload, name='upload'),
     path('kb/upload_file', upload_file, name='upload_file'),
     path('kb/search', search),
     path('kb/create_collection', create_collection_api,name='create_collection'),

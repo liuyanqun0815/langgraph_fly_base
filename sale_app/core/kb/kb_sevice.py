@@ -1,4 +1,5 @@
 import json
+import os
 import re
 
 from langchain_core.documents import Document
@@ -44,7 +45,6 @@ class KBService:
         vector = Vector(collection_name=collection_name)
         # docs = docs[:1]
         vector.vector_processor.hybrid_add_documents(docs)
-
 
     @classmethod
     def parse_excel(cls, excel_file, collection_name: str = 'test_json'):
@@ -130,3 +130,15 @@ class KBService:
     def keyword_search(cls, query: str, collection_name: str = 'test_json', file_name: str = None):
         vector = Vector(collection_name=collection_name, partition_key=file_name)
         return vector.vector_processor.search_by_keyword(query)
+
+    @classmethod
+    def xlsx_qa_upload(cls, file_path: str, collection_name: str = 'test_json'):
+        file_docs = xlsx_loader(file_path)
+        # 写入到向量库
+        file_name = os.path.basename(file_docs).split('.')[0]
+        # 将file_docs 转成List[Document]格式
+        docs = [Document(page_content=doc['question'],
+                         metadata={'question': doc['question'], 'answer': doc['answer'], 'file_name': file_name,
+                                   'source': file_path}) for doc in file_docs]
+        vector = Vector(collection_name=collection_name)
+        vector.vector_processor.hybrid_add_documents(docs)

@@ -11,7 +11,6 @@ from .forms.file_upload_form import FileUploadForm
 
 from ..config.log import Logger
 from ..core.kb.kb_sevice import KBService
-from ..core.kb.xlsx_qa_view import xlsx_qa_upload
 
 logger = Logger("fly_base")
 
@@ -22,39 +21,28 @@ class DocumentForm:
 
 
 @csrf_exempt
-def upload(request):
-    if request.method == 'POST':
-        form = FileUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            file_doc = request.FILES['document']
-            file_extension = os.path.splitext(file_doc.name)[1].lower()
-            if file_extension == '.xlsx':
-                xlsx_qa_upload(file_doc)
-            else:
-                return HttpResponse(f'文件格式错误！目前不支持{file_extension}')
-            return HttpResponse('文件上传成功！')
-    else:
-        form = DocumentForm()
-    return render(request, 'upload.html', {'form': form})
-
-
-@csrf_exempt
 def upload_file(request):
     if request.method == 'POST':
         form = FileUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            excel_file = request.FILES['document']
-            collection_name = request.POST.get("collection_name")
+            excel_file = request.FILES['file']
+            if not excel_file:
+                return HttpResponse("excel_file is null")
+            collection_name = request.FILES("collection_name")
             # 使用 FileSystemStorage 来保存文件到指定目录
             fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'kb_file'))
             filename = fs.save(excel_file.name, excel_file)
             # 获取文件的URL路径
             absolute_path = os.path.join(fs.base_location, filename)
-            KBService.parse(absolute_path, collection_name)
+            upload_type = request.FILES("upload_type")
+            if upload_type == 'general':
+                KBService.parse(absolute_path)
+            else:
+                KBService.xlsx_qa_upload(absolute_path, collection_name)
             return HttpResponse('文件上传成功！')
-    # else:
-    # form = DocumentForm()
-    return render(request, 'upload_document.html')
+    else:
+        form = DocumentForm()
+    return render(request, 'upload_file.html', {'form': form})
 
 
 @csrf_exempt
@@ -71,13 +59,11 @@ def search(request):
 
 @csrf_exempt
 def create_collection_api(request):
-    if request.method == 'POST':
-        collection_name = request.POST.get("collection_name")
-        if not collection_name:
-            return HttpResponse("collection_name is null")
-        KBService.create_collection(collection_name)
-
-    return render(request, 'create_collection.html')
+    collection_name = request.GET.get("collection_name")
+    if not collection_name:
+        return HttpResponse("collection_name is null")
+    KBService.create_collection(collection_name)
+    return HttpResponse("create index success")
 
 
 @csrf_exempt

@@ -1,31 +1,34 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="form-container">
-    <h1>上传文件</h1>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <label for="upload_type">选择导入类型:</label>
-        <select name="upload_type" id="upload_type">
-            <option value="general">普通导入</option>
-            <option value="qa">QA问题导入</option>
-        </select><br><br>
+    <div class="form-container">
+        <h1>上传文件</h1>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="name">知识库名称：</label>
+            <input type="text" id="collection_name" name="collection_name" required>
+            <br><br>
+            <label for="upload_type">选择导入类型:  </label>
+            <select name="upload_type" id="upload_type">
+                <option value="general">普通导入</option>
+                <option value="qa">QA问题导入</option>
+            </select><br><br>
 
-        <input type="file" name="file">
-        <p id="file_type_info">允许的文件类型：PDF (.pdf), DOC (.doc), XLS (.xls), XLSX (.xlsx)</p>
-        <button type="submit">上传文件</button>
-    </form>
-</div>
+            <input type="file" name="file">
+            <p id="file_type_info">允许的文件类型：PDF (.pdf), DOC (.doc), XLS (.xls), XLSX (.xlsx)</p>
+            <button type="submit">上传文件</button>
+        </form>
+    </div>
 
-<script>
-    document.getElementById('upload_type').addEventListener('change', function () {
-        var uploadType = this.value;
-        var fileTypeInfo = document.getElementById('file_type_info');
-        if (uploadType === 'general') {
-            fileTypeInfo.textContent = '允许的文件类型：PDF (.pdf), DOC (.doc), XLS (.xls), XLSX (.xlsx)';
-        } else if (uploadType === 'qa') {
-            fileTypeInfo.textContent = '允许的文件类型：XLS (.xls), XLSX (.xlsx)';
-        }
-    });
-</script>
+    <script>
+        document.getElementById('upload_type').addEventListener('change', function () {
+            var uploadType = this.value;
+            var fileTypeInfo = document.getElementById('file_type_info');
+            if (uploadType === 'general') {
+                fileTypeInfo.textContent = '允许的文件类型：PDF (.pdf), DOC (.doc), XLS (.xls), XLSX (.xlsx)';
+            } else if (uploadType === 'qa') {
+                fileTypeInfo.textContent = '允许的文件类型：XLS (.xls), XLSX (.xlsx)';
+            }
+        });
+    </script>
 {% endblock %}
