@@ -6,6 +6,8 @@ from typing import Any
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 
+from sale_app.core.kb.vector.fly_document import FlyDocument
+
 
 class BaseVector(ABC):
 
@@ -35,7 +37,7 @@ class BaseVector(ABC):
 
 
     @abstractmethod
-    def hybrid_search(self, query: str, **kwargs: Any) -> list[Document]:
+    def hybrid_search(self, query: str, **kwargs: Any) -> list[FlyDocument]:
         raise NotImplementedError
 
 
@@ -44,14 +46,14 @@ class BaseVector(ABC):
             self,
             query: str,
             **kwargs: Any
-    ) -> list[Document]:
+    ) -> list[FlyDocument]:
         raise NotImplementedError
 
     @abstractmethod
     def search_by_keyword(
             self, query: str,
             **kwargs: Any
-    ) -> list[Document]:
+    ) -> list[FlyDocument]:
         raise NotImplementedError
 
 

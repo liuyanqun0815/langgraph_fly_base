@@ -60,3 +60,13 @@ p {
     align-items: center;
     flex-direction: column;
 }
+/* 搜索结果样式 宽度百分之80，居中*/
+.search-results {
+            width: 80%;
+            margin: 0 auto;
+            text-align: center;
+        }
+.search-results strong {
+  display: inline-block;
+  width: 80px;
+}

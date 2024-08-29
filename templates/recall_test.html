@@ -1,6 +1,27 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>召回测试页面</h1>
-<p>这里是召回测试的内容。</p>
+    <h2>知识库数据召回</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">查询</button>
+    </form>
+
+    {% if response %}
+        <div class="search-results" id="search-results">
+            <h3>{{ response.message }}</h3>
+            <ul>
+                {% for result in response.results %}
+                    <li>
+                        <strong>评分:</strong> {{ result.score }}<br>
+                        <strong>元数据:</strong> {{ result.metadata }}<br>
+                        <strong>详情:</strong> {{ result.page_content }}
+                    </li>
+                {% empty %}
+                    <li>没有找到搜索结果。</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
 {% endblock %}

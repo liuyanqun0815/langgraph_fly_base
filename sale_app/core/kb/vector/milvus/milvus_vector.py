@@ -10,6 +10,7 @@ from scipy.sparse import csr_array  # type: ignore
 
 from config import MilvusConfig
 from sale_app.core.embedding.splade_embedding_model import SpladeEmbeddingModel
+from sale_app.core.kb.vector.fly_document import FlyDocument
 from sale_app.core.kb.vector.vector_base import BaseVector
 from sale_app.core.kb.vector.vector_factory import AbstractVectorFactory
 from sale_app.core.kb.vector.vector_type import VectorType
@@ -136,7 +137,7 @@ class MilvusVector(BaseVector):
         collection.insert(entities)
         collection.load()
 
-    def hybrid_search(self, query: str, **kwargs: Any) -> list[Document]:
+    def hybrid_search(self, query: str, **kwargs: Any) -> list[FlyDocument]:
         partition_key = kwargs.get("partition_key", self._partition_key)
         logger.info(f"混合搜索，请求参数：{query},分区键内容:{partition_key}")
         dense_embedding_func = self._embeddings
@@ -174,12 +175,13 @@ class MilvusVector(BaseVector):
         logger.info(f"混合搜索，返回内容：{results}")
         docs = []
         for result in results:
-            doc = Document(page_content=result.page_content,
-                           metadata=result.metadata)
+            doc = FlyDocument(page_content=result.page_content,
+                              metadata=result.metadata,
+                              score=0)
             docs.append(doc)
         return docs
 
-    def search_by_vector(self, query: str, **kwargs: Any) -> list[Document]:
+    def search_by_vector(self, query: str, **kwargs: Any) -> list[FlyDocument]:
         partition_key = kwargs.get("partition_key", self._partition_key)
         logger.info(f"语义检索，请求内容：{query},分区键:{partition_key}")
         if partition_key is None or partition_key == "":
@@ -198,12 +200,13 @@ class MilvusVector(BaseVector):
         docs = []
         logger.info(f"语义检索检索结果：{results}")
         for result in results:
-            doc = Document(page_content=result[0].page_content,
-                           metadata=result[0].metadata.get("metadata"))
+            doc = FlyDocument(page_content=result[0].page_content,
+                              metadata=result[0].metadata.get("metadata"),
+                              score=result[1])
             docs.append(doc)
         return docs
 
-    def search_by_keyword(self, query: str, **kwargs: Any) -> list[Document]:
+    def search_by_keyword(self, query: str, **kwargs: Any) -> list[FlyDocument]:
         partition_key = kwargs.get("partition_key", self._partition_key)
 
         collection = Collection(
@@ -232,15 +235,16 @@ class MilvusVector(BaseVector):
                 anns_field="sparse_vector",  # 稀疏向量字段名
                 param=search_params,  # 搜索参数
                 limit=3,  # 返回的向量个数
-                output_fields=["page_content", "metadata"] , # 返回的字段列表
+                output_fields=["page_content", "metadata"],  # 返回的字段列表
                 expr=f"{MilvusVector.PARTITION_KEY} like '%{partition_key}%'"
             )
         docs = []
         for result in results:
             for hit in result:
                 logger.info(f"hit: {hit}")
-                doc = Document(page_content=hit.fields['page_content'],
-                               metadata=hit.fields['metadata'])
+                doc = FlyDocument(page_content=hit.fields['page_content'],
+                                  metadata=hit.fields['metadata'],
+                                  score=hit.distance)
                 docs.append(doc)
         return docs
 

@@ -19,8 +19,7 @@ from django.urls import path
 
 from sale_app.chat_api.api import to_chat
 from sale_app.chat_api.file import image_preview
-from sale_app.chat_api.kb_api import upload_file, search, create_collection_api, upload_and_read_excel, \
-    hybrid_search, keyword_search, text_insert_milvus, upload
+from sale_app.chat_api.kb_api import upload_file, search, create_collection_api, upload_and_read_excel,text_insert_milvus
 
 # app_name = 'fly-base'
 
@@ -29,11 +28,11 @@ urlpatterns = [
     path("api/chat", to_chat, name='chat'),
     # path('kb/upload', upload, name='upload'),
     path('kb/upload_file', upload_file, name='upload_file'),
-    path('kb/search', search),
+    path('kb/search', search, name='search'),
     path('kb/create_collection', create_collection_api,name='create_collection'),
     path('kb/upload_and_read_excel', upload_and_read_excel),
-    path('kb/hybrid_search', hybrid_search),
-    path('kb/keyword_search', keyword_search),
+    # path('kb/hybrid_search', hybrid_search),
+    # path('kb/keyword_search', keyword_search),
     path('kb/text_insert_milvus', text_insert_milvus),
     path('file/image-preview/<str:fileName>', image_preview, name='image_preview'),
 ]

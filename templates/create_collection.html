@@ -1,6 +1,20 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>创建集合页面</h1>
-<p>这里是创建集合的内容。</p>
+    <div class="form-container">
+        <h1>创建知识库</h1>
+        <form id="upload_form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="name">知识库名称：</label>
+            <input type="text" id="collection_name" name="collection_name" required>
+
+            <p id="file_type_info" style="font-size: smaller;">暂时仅支持创建知识库名称，后续支持属性、索引自定义</p>
+            <br><br>
+            <button type="submit">创建知识库</button>
+        </form>
+    </div>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
 {% endblock %}
