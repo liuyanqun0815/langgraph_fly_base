@@ -1,12 +1,10 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>开始会话</h2>
     <form method="post" enctype="multipart/form-data">
+        <h1>开始会话</h1>
         {% csrf_token %}
         {{ form.as_p }}
-        {#         <input type="hidden" name="sessionId" value="{{ form.sessionId }}">#}
-        {#        <input type="hidden" name="session_id" value="{{ form.sessionId }}">#}
         <button type=" submit">发送</button>
     </form>
 
