@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>开始会话</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {#         <input type="hidden" name="sessionId" value="{{ form.sessionId }}">#}
+        {#        <input type="hidden" name="session_id" value="{{ form.sessionId }}">#}
+        <button type=" submit">发送</button>
+    </form>
+
+    {% if data %}
+        <h3>{{ message }}</h3>
+        <label>
+            <div class="chat-results" id="chat-results">
+                <ul>
+                    {% for result in data %}
+                        <li style="color: {% if result.type == 'human' %}orange{% else %}slategrey{% endif %}">
+                            {% if result.type == 'human' %}客户: {% endif %}
+                            {% if result.type == 'ai' %}AI机器人: {% endif %}
+                            {{ result.content }}
+                        </li>
+                    {% empty %}
+                        <li>没有找到搜索结果。</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </label>
+
+    {% endif %}
+{% endblock %}

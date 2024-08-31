@@ -1,4 +1,4 @@
-from langchain_core.messages import AIMessage
+from langchain_core.messages import BaseMessage, AIMessage, HumanMessage
 
 from sale_app.config.log import Logger
 from sale_app.core.mutil.flow_graph import run_flow
@@ -13,7 +13,7 @@ set_verbose(True)
 
 
 # 流程控制
-def flow_control(question: str, sessionId: str) -> dict | str | list[str | dict]:
+def flow_control(question: str, sessionId: str):
     # 前置安全校验
     pre_data = pre_handle(question)
     if pre_data:
@@ -24,9 +24,12 @@ def flow_control(question: str, sessionId: str) -> dict | str | list[str | dict]
             "thread_id": sessionId
         }
     }
-    meessage = run_flow(question, configurable)
-    last_message = meessage["messages"][-1]
-    if isinstance(last_message, AIMessage):
-        logger.info(f"返回结果:{last_message.content}")
-        return last_message.content
-    return meessage["messages"][-2].content
+    data = run_flow(question, configurable)
+    messages = data['messages']
+    message = [mess for mess in messages if (isinstance(mess, AIMessage) or isinstance(mess, HumanMessage))]
+    return message
+    # last_message = meessage["messages"][-1]
+    # if isinstance(last_message, AIMessage):
+    #     logger.info(f"返回结果:{last_message.content}")
+    #     return last_message.content
+    # return meessage["messages"][-2].content
