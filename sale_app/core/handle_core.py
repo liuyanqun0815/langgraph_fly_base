@@ -18,7 +18,7 @@ def flow_control(question: str, sessionId: str):
     pre_data = pre_handle(question)
     if pre_data:
         logger.info(f"前置安全校验不通过，返回结果:{pre_data}")
-        return pre_data
+        return [HumanMessage(content=question), AIMessage(content=pre_data)]
     configurable = {
         "configurable": {
             "thread_id": sessionId
@@ -28,8 +28,3 @@ def flow_control(question: str, sessionId: str):
     messages = data['messages']
     message = [mess for mess in messages if (isinstance(mess, AIMessage) or isinstance(mess, HumanMessage))]
     return message
-    # last_message = meessage["messages"][-1]
-    # if isinstance(last_message, AIMessage):
-    #     logger.info(f"返回结果:{last_message.content}")
-    #     return last_message.content
-    # return meessage["messages"][-2].content

@@ -34,12 +34,12 @@ tagging_prompt = ChatPromptTemplate.from_template(
 )
 
 tip = {
-    "isPublicSafety": "文本描述是否危害公共安全或恶俗的言论",
-    "isPolitical": "文本内容是否涉及法律或政治敏感",
-    "isReligiousConflict": "文本内容是否涉及宗教冲突或文化不适的话题",
-    "isProgram": "文本内容是否存在编程代码、函数方法相关",
-    "isTranslate": "文本内容是否涉及翻译，例如，你好翻译成英文，你好翻译成韩语等",
-    "isContentCreation": "文本内容是否涉及内容创作，例如写一篇论文，写一首诗等",
+    "isPublicSafety": "文本描述危害公共安全或恶俗的言论",
+    "isPolitical": "文本内容涉及法律或政治敏感",
+    "isReligiousConflict": "文本内容涉及宗教冲突或文化不适的话题",
+    "isProgram": "文本内容存在编程代码、函数方法相关",
+    "isTranslate": "文本内容涉及翻译，例如，你好翻译成英文，你好翻译成韩语等",
+    "isContentCreation": "文本内容涉及内容创作，例如写一篇论文，写一首诗等",
 }
 
 

@@ -3,6 +3,8 @@
 import os
 import sys
 
+from dotenv import load_dotenv
+
 
 def main():
     """Run administrative tasks."""
@@ -19,4 +21,6 @@ def main():
 
 
 if __name__ == "__main__":
+    # 在项目启动时加载 .env 文件
+    load_dotenv(override=True)
     main()

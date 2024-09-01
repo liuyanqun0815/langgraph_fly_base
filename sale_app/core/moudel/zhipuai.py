@@ -1,10 +1,8 @@
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
 import os
-from dotenv import load_dotenv
 from langchain_zhipu import ChatZhipuAI, ZhipuAIEmbeddings
 
-load_dotenv(override=True)  # 加载.env文件
 
 
 class ZhipuAI:
