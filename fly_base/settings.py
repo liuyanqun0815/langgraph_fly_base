@@ -50,6 +50,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "sale_app.util.traceid_ware.TraceIdMiddleware",
 ]
 
 ROOT_URLCONF = "fly_base.urls"
@@ -135,3 +136,27 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'storage/')
 # 媒体文件存储的根目录
 KB_FILE_ROOT = os.path.join(BASE_DIR, 'storage/kb_file/')
 
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'verbose': {
+#             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'class': 'sale_app.util.TraceIdLogHandler',  # 使用自定义处理器
+#             # 'filename': 'storage/debug.log',
+#             # 'formatter': 'verbose',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }
