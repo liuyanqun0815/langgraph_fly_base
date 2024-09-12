@@ -1,5 +1,7 @@
 import logging
 
+from sale_app.util.traceId_log_handler import TraceIdFilter
+
 
 class Logger:
     def __init__(self, name):
@@ -9,9 +11,9 @@ class Logger:
             # 输出到控制台
             console = logging.StreamHandler()
             console.setLevel(logging.INFO)
-            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            formatter = logging.Formatter('%(levelname)s %(asctime)s traceId=%(trace_id)s %(message)s')
             console.setFormatter(formatter)
-            # logging.getLogger('').addHandler(console)
+            console.addFilter(TraceIdFilter())
             self.logger.addHandler(console)
 
             # file_handler = logging.FileHandler(f"{name}.log")
