@@ -15,7 +15,7 @@ class IntentionConfirm(BaseModel):
     """
     客户意图确认
     """
-    isIntention: bool = Field(..., deault=None, description="是否存在意图")
+    isIntention: bool = Field(default=None, description="是否存在意图")
 
 
 def intention_confirm(llm: BaseChatModel):

@@ -10,7 +10,7 @@ class Product(models.Model):
     product_info = models.CharField("产品信息", max_length=256)  # 产品信息
 
     def __str__(self):
-        print(self.product_name)
+        return self.product_name
 
     class Meta:
         verbose_name = "产品信息表"

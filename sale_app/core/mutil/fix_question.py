@@ -11,7 +11,7 @@ from sale_app.util.history_formate import format_docs
 
 class FixedQuestion(BaseModel):
     """重构最新问题"""
-    fixQuestion: str = Field(..., deault=None, title="最新问题",
+    fixQuestion: str = Field(default=None, title="最新问题",
                              description="使用大模型结合聊天记录，经过大模型修正后的最新问题")
 
 

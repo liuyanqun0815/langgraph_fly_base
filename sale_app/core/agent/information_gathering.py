@@ -18,9 +18,9 @@ class toBeCollectionInformation(BaseModel):
     """
     待收集问题
     """
-    information: str = Field(..., deault=None, title="问题", description="待信息收集的问题")
-    sequence: int = Field(..., deault=None, title="问题前的序号", description="待信息收集问题前面的序号")
-    isRecommend: bool = Field(..., deault=None, description="当用户回答完所有信息的时候,在进行推荐产品")
+    information: str = Field(default=None, title="问题", description="待信息收集的问题")
+    sequence: int = Field(default=None, title="问题前的序号", description="待信息收集问题前面的序号")
+    isRecommend: bool = Field(default=None, description="当用户回答完所有信息的时候,在进行推荐产品")
 
 
 information_count = 4
