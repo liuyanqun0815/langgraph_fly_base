@@ -4,7 +4,12 @@ from sale_app.core.moudel.zhipuai import ZhipuAI
 logger = Logger("fly_base")
 
 
-def pre_handle(question: str) -> dict | None:
+def _safe_reject_message(exc: Exception) -> None:
+    """安全模块失败时放行到主流程，避免因 LLM 异常导致整站不可用。"""
+    return None
+
+
+def pre_handle(question: str) -> str | None:
     llm = ZhipuAI().openai_chat()
     model = llm.with_structured_output(
         Classification
@@ -16,8 +21,8 @@ def pre_handle(question: str) -> dict | None:
         # 遍历对象的属性
         return cicile_attribute(obj)
     except Exception as e:
-        logger.error(e)
-        return e.body.get("message")
+        logger.logger.exception("pre_handle failed: %s", e)
+        return _safe_reject_message(e)
 
 
 from langchain_core.prompts import ChatPromptTemplate
