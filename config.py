@@ -16,6 +16,7 @@ DEFAULTS = {
     'MILVUS_DATABASE': 'default',
     # 推荐集合默认配置
     'RECOMMEND_COLLECTION_NAME': 'recommend_product',
+    'DEFAULT_KB_COLLECTION': 'loan_qa',
     'QDRANT_URL': 'localhost',
     'QDRANT_PORT': 6333,
     'QDRANT_API_KEY': None,

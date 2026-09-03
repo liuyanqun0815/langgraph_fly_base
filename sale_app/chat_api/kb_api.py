@@ -102,7 +102,7 @@ def upload_and_read_excel(request):
             # fs.base_location = settings.MEDIA_ROOT
             # file_url = fs.url(filename)
             absolute_path = os.path.join(fs.base_location, filename)
-            KBService.parse_excel(absolute_path, collection_name)
+            KBService.parse(absolute_path, collection_name)
     return JsonResponse({'data': 'sucess'})
 
 
