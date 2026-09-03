@@ -28,6 +28,8 @@
 
 项目目前开发过程中,每天都会进行更新
 # 数据库选择
+当前向量后端仅启用 **Milvus**（`VECTOR_TYPE=milvus`）。Qdrant/Weaviate 为预留代码，勿在生产切换。
+
 向量数据库选择困难症，对比了活跃度比较高或者易用的数据库(drant,milvus,weaviate,faiss)，最终选择milvus,详细介绍见[向量数据库浅谈](https://juejin.cn/post/7388096340503707688)
 
 
