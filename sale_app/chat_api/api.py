@@ -1,7 +1,6 @@
 from django.core.cache import cache
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
 import json
 
 from sale_app.chat_api.forms.chat_form import ChatForm
@@ -12,7 +11,6 @@ from sale_app.util.UUIDUtils import generate_random_string
 logger = Logger("fly_base")
 
 
-@csrf_exempt
 def to_chat(request):
     form = ChatForm(request.POST or None)
     form_data = {
