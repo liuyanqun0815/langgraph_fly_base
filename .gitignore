@@ -15,8 +15,15 @@
 /vcs.xml
 /modules.xml
 .idea
-etcd/
-milvus/
-minio/
-qdrant/
-storage/
+
+# secrets & local env
+.env
+.env.local
+*.pem
+
+# docker volume data at repo root only
+/etcd/
+/milvus/
+/minio/
+/qdrant/
+/storage/
