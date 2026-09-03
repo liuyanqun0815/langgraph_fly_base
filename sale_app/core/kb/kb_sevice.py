@@ -18,7 +18,9 @@ logger = Logger("fly_base")
 class KBService:
 
     @classmethod
-    def similarity_search(cls, query: str, collection_name: str = 'test_json', file_name: str = None):
+    def similarity_search(cls, query: str, collection_name: str | None = None, file_name: str = None):
+        if collection_name is None:
+            collection_name = get_env("DEFAULT_KB_COLLECTION")
         vector = Vector(collection_name=collection_name, partition_key=file_name)
         return vector.vector_processor.search_by_vector(query)
 
@@ -100,17 +102,23 @@ class KBService:
         return parsed_dict
 
     @classmethod
-    def hybrid_search(cls, query, collection_name: str = 'test_json', file_name: str = None):
+    def hybrid_search(cls, query, collection_name: str | None = None, file_name: str = None):
+        if collection_name is None:
+            collection_name = get_env("DEFAULT_KB_COLLECTION")
         vector = Vector(collection_name=collection_name, partition_key=file_name)
         return vector.vector_processor.hybrid_search(query)
 
     @classmethod
-    def keyword_search(cls, query: str, collection_name: str = 'test_json', file_name: str = None):
+    def keyword_search(cls, query: str, collection_name: str | None = None, file_name: str = None):
+        if collection_name is None:
+            collection_name = get_env("DEFAULT_KB_COLLECTION")
         vector = Vector(collection_name=collection_name, partition_key=file_name)
         return vector.vector_processor.search_by_keyword(query)
 
     @classmethod
-    def xlsx_qa_upload(cls, file_path: str, collection_name: str = 'test_json'):
+    def xlsx_qa_upload(cls, file_path: str, collection_name: str | None = None):
+        if collection_name is None:
+            collection_name = get_env("DEFAULT_KB_COLLECTION")
         file_docs = xlsx_loader(file_path)
         # 写入到向量库
         file_name = os.path.basename(file_docs).split('.')[0]
