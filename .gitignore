@@ -21,6 +21,13 @@
 .env.local
 *.pem
 
+# local databases and runtime artifacts
+*.db
+*.db-wal
+*.db-shm
+*.sqlite3
+docs/fly_base.html
+
 # docker volume data at repo root only
 /etcd/
 /milvus/
