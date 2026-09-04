@@ -1,41 +1,30 @@
 import json
-import os
-from pathlib import Path
 
-from django.core.wsgi import get_wsgi_application
+import dotenv
 
-# 设置Django环境变量
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "fly_base.settings")
-application = get_wsgi_application()
+dotenv.load_dotenv()
 
-# 加载JSON数据
+from sale_app.database.session import engine, get_db_session
+from sale_app.database.sqlalchemy_models import Base, Product
+
+
 def load_data(filename):
-    with open(filename, 'r', encoding='utf-8') as file:
-        data = json.load(file)
-    return data
+    with open(filename, "r", encoding="utf-8") as file:
+        return json.load(file)
 
-
-# 导入数据到模型
-from sale_app.models import Product
 
 def import_data(data):
-    for item in data:
-        # 创建模型实例并保存到数据库
-        Product.objects.create(**item)
+    with get_db_session() as session:
+        for item in data:
+            session.add(Product(**item))
+        session.commit()
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# 主函数
 def main():
-    # 构建数据文件的路径
-    data_file_path = 'sale_app/migrations/init_sqllite.json'
-    # 加载数据
-    data = load_data(data_file_path)
-    # 导入数据
+    Base.metadata.create_all(bind=engine)
+    data = load_data("sale_app/migrations/init_sqllite.json")
     import_data(data)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
