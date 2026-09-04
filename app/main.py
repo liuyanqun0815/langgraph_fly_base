@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.middleware.trace_id import TraceIdMiddleware
-from app.routers import chat
+from app.routers import chat, files, kb
 from config import app_secret_key
 from sale_app.core.mutil.flow_graph import shutdown_chain, startup_chain
 
@@ -25,6 +25,8 @@ app.add_middleware(SessionMiddleware, secret_key=app_secret_key())
 app.add_middleware(TraceIdMiddleware)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 app.include_router(chat.router)
+app.include_router(kb.router)
+app.include_router(files.router)
 
 
 @app.get("/health")

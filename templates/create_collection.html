@@ -3,8 +3,7 @@
 {% block content %}
     <h1>创建知识库</h1>
     <div class="form-container">
-        <form id="upload_form" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+        <form id="upload_form" method="post" enctype="multipart/form-data" action="/kb/create_collection">
             <label for="name">知识库名称：</label>
             <input type="text" id="collection_name" name="collection_name" required>
 

@@ -1,8 +1,11 @@
 import os
+from pathlib import Path
 
 import dotenv
 
 dotenv.load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent
 
 DEFAULTS = {
     'VECTOR_TYPE': 'milvus',
@@ -28,6 +31,9 @@ DEFAULTS = {
     'SERVICE_API_URL': 'http://127.0.0.1:8000',
     'APP_SECRET_KEY': 'dev-only-change-me',
     'DATABASE_URL': 'sqlite:///./db.sqlite3',
+    'MEDIA_ROOT': str(BASE_DIR / 'storage'),
+    'KB_FILE_ROOT': str(BASE_DIR / 'storage' / 'kb_file'),
+    'IMAGE_DIR': str(BASE_DIR / 'storage' / 'image_file'),
 }
 
 
@@ -70,3 +76,15 @@ def recommend_collection_name():
 
 def app_secret_key():
     return get_env('APP_SECRET_KEY') or get_env('DJANGO_SECRET_KEY')
+
+
+def media_root():
+    return get_env('MEDIA_ROOT')
+
+
+def kb_file_root():
+    return get_env('KB_FILE_ROOT')
+
+
+def image_dir():
+    return get_env('IMAGE_DIR')

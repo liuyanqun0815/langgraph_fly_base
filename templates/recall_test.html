@@ -2,9 +2,27 @@
 
 {% block content %}
     <h1>知识库数据召回</h1>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
+    <form method="post" enctype="multipart/form-data" action="/kb/search">
+        <p>
+            <label for="id_collection_name">集合名称:</label>
+            <input type="text" name="collection_name" id="id_collection_name" required>
+        </p>
+        <p>
+            <label for="id_query_type">查询类型:</label>
+            <select name="query_type" id="id_query_type" required>
+                <option value="vector">向量查询</option>
+                <option value="hybrid_search">混合查询</option>
+                <option value="keyword_search">关键字查询</option>
+            </select>
+        </p>
+        <p>
+            <label for="id_file_name">文件名称:</label>
+            <input type="text" name="file_name" id="id_file_name">
+        </p>
+        <p>
+            <label for="id_query">查询内容:</label>
+            <input type="text" name="query" id="id_query" required>
+        </p>
         <button type="submit">查询</button>
     </form>
 
@@ -18,7 +36,7 @@
                         <strong>元数据:</strong> {{ result.metadata }}<br>
                         <strong>详情:</strong> {{ result.page_content }}
                     </li>
-                {% empty %}
+                {% else %}
                     <li>没有找到搜索结果。</li>
                 {% endfor %}
             </ul>

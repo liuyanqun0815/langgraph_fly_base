@@ -3,8 +3,7 @@
 {% block content %}
     <div class="form-container">
         <h1>上传文件</h1>
-        <form id="upload_form" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+        <form id="upload_form" method="post" enctype="multipart/form-data" action="/kb/upload_file">
             <label for="name">知识库名称：</label>
             <input type="text" id="collection_name" name="collection_name" required>
             <br><br>
@@ -30,30 +29,22 @@
                 fileTypeInfo.textContent = '允许的文件类型：XLS (.xls), XLSX (.xlsx)';
             }
         });
-document.getElementById('upload_form').addEventListener('submit', function(event) {
-        event.preventDefault(); // 阻止表单的默认提交行为
-        var formData = new FormData(this); // 创建FormData对象
+        document.getElementById('upload_form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
 
-        fetch("{% url 'upload_file' %}", {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message); // 显示成功提示
-            } else {
-                alert(data.message); // 显示失败提示
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('请求失败，请稍后重试');
+            fetch("/kb/upload_file", {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('请求失败，请稍后重试');
+            });
         });
-    });
     </script>
 {% endblock %}
