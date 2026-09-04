@@ -17,6 +17,9 @@ class Product(Base):
     product_type: Mapped[int] = mapped_column(Integer, default=1)
     product_info: Mapped[str] = mapped_column(String(256))
 
+    def __str__(self):
+        return self.product_name
+
 
 class Dataset(Base):
     __tablename__ = "sale_app_datasets"

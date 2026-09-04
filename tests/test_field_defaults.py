@@ -1,15 +1,3 @@
-import os
-
-import django
-from django.conf import settings
-
-
-def _ensure_django():
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "fly_base.settings")
-    if not settings.configured:
-        django.setup()
-
-
 def test_fixed_question_fields_accept_defaults():
     from sale_app.core.mutil.fix_question import FixedQuestion
 
@@ -53,8 +41,7 @@ def test_qa_handle_fields_accept_defaults():
 
 
 def test_product_str_returns_name():
-    _ensure_django()
-    from sale_app.models import Product
+    from sale_app.database.sqlalchemy_models import Product
 
     p = Product(product_name="测试贷", product_info="info")
     assert str(p) == "测试贷"

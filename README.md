@@ -7,7 +7,7 @@
 
 ![langchain.drawio.png](docs%2Flangchain_all.drawio.png)
 
-**项目使用的web框架：django**
+**项目使用的 web 框架：FastAPI + Uvicorn**
 
 **日志框架：logging**
 
@@ -47,29 +47,17 @@ milvus可视化页面![img_1.png](docs%2Fimg_1.png)
 
 另外也可以同时用稠密向量，使用混合检索，对查询的结果重排序权重稀疏向量大些
 
-升级 LangGraph 1.x 后若 checkpoint 异常，可删除旧库：`Remove-Item -Force storage/memory_file/chat_history.db`
+## 启动项目
 
-## 步骤:
-1. 创建项目
-2. 创建虚拟环境
-3. 克隆项目
-4. pip install -r requirements
-如果按照fasttext失败,手动安装
-5. pip install /load_model/fasttext_wheel-0.9.2-cp311-cp311-win_amd64.whl
-6. 数据库表迁移\
-`python manage.py makemigrations sale_app`\
-`python manage.py migrate sale_app`
-7. 默认数据导入\
-`python import_data_to_sqlite.py`
-8. 向量数据库创建(通过docker启动)\
-进入到docker目录下 \
-```shell
-cd docker
-docker-compose -f milvus-standalone-docker-compose.yml -p fly up -d
-```
-9. 启动项目\
-`python manage.py runserver`
-
+1. Python 3.10 或 3.11 推荐
+2. `pip install -r requirements.txt`
+3. 智谱 SDK 需单独安装（与 LangChain 1.x 主栈解耦）：`pip install langchain-zhipu==4.1.8 --no-deps`
+4. 复制 `.env.example` 为 `.env` 并填写密钥
+5. 首次升级 LangGraph 1.x 后，删除旧会话库：`del storage\memory_file\chat_history.db`（Windows）或 `rm storage/memory_file/chat_history.db`
+6. `python import_data_to_sqlite.py`（新环境）
+7. 启动 Milvus（docker 目录下 compose）
+8. `uvicorn app.main:app --reload --host 127.0.0.1 --port 8000`
+9. 访问 http://127.0.0.1:8000/api/chat 与 http://127.0.0.1:8000/kb/upload_file
 
 ## 更新日志：
 ```
