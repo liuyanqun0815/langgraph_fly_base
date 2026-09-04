@@ -12,6 +12,8 @@ from sale_app.config.log import Logger
 logger = Logger("fly_base")
 
 _chain = None
+_checkpointer = None
+_checkpointer_cm = None
 
 
 def super_agent_node(state, agent, name):
@@ -151,25 +153,46 @@ def build_flow_graph(llm):
     return flow_graph
 
 
-def get_chain():
-    global _chain
-    if _chain is not None:
-        return _chain
-
-    from langgraph.checkpoint.sqlite import SqliteSaver
-
-    from sale_app.core.moudel.zhipuai import ZhipuAI
+def _checkpoint_db_path() -> str:
     from sale_app.util.file_utils import find_project_root
 
-    llm = ZhipuAI().openai_chat()
-    graph = build_flow_graph(llm)
     db_path = (
         find_project_root(os.path.abspath(__file__))
         + "/storage/memory_file/chat_history.db"
     )
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    memory = SqliteSaver.from_conn_string(db_path)
-    _chain = graph.compile(checkpointer=memory)
+    return db_path
+
+
+def startup_chain() -> None:
+    """在 FastAPI lifespan startup 调用；测试可跳过。"""
+    global _chain, _checkpointer, _checkpointer_cm
+    if _chain is not None:
+        return
+    from langgraph.checkpoint.sqlite import SqliteSaver
+
+    from sale_app.core.moudel.zhipuai import ZhipuAI
+
+    llm = ZhipuAI().openai_chat()
+    graph = build_flow_graph(llm)
+    _checkpointer_cm = SqliteSaver.from_conn_string(_checkpoint_db_path())
+    _checkpointer = _checkpointer_cm.__enter__()
+    _chain = graph.compile(checkpointer=_checkpointer)
+
+
+def shutdown_chain() -> None:
+    global _chain, _checkpointer, _checkpointer_cm
+    if _checkpointer_cm is not None:
+        _checkpointer_cm.__exit__(None, None, None)
+    _checkpointer_cm = None
+    _checkpointer = None
+    _chain = None
+
+
+def get_chain():
+    global _chain
+    if _chain is None:
+        startup_chain()
     return _chain
 
 

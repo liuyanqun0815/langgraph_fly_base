@@ -47,6 +47,8 @@ milvus可视化页面![img_1.png](docs%2Fimg_1.png)
 
 另外也可以同时用稠密向量，使用混合检索，对查询的结果重排序权重稀疏向量大些
 
+升级 LangGraph 1.x 后若 checkpoint 异常，可删除旧库：`Remove-Item -Force storage/memory_file/chat_history.db`
+
 ## 步骤:
 1. 创建项目
 2. 创建虚拟环境
