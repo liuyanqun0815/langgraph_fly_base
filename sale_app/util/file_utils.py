@@ -1,11 +1,20 @@
-# 假设项目根目录包含特定的文件或目录，例如 'manage.py' 或 'README.md'
 import os
+from pathlib import Path
+
+# Django 已移除；用 FastAPI 时代仍存在的根目录标记
+PROJECT_ROOT_MARKERS = ("config.py", "app/main.py", "requirements.txt")
 
 
-def find_project_root(start_path):
-    path = start_path
-    while not os.path.exists(os.path.join(path, 'manage.py')):  # 根据你的项目特征修改条件
-        path = os.path.dirname(path)
-        if path == os.path.dirname(path):  # 检查是否已经到达文件系统的根目录
+def find_project_root(start_path: str | os.PathLike[str]) -> str | None:
+    """从 start_path 向上查找项目根目录。"""
+    path = Path(start_path).resolve()
+    if path.is_file():
+        path = path.parent
+
+    while True:
+        if any((path / marker).is_file() for marker in PROJECT_ROOT_MARKERS):
+            return str(path)
+        parent = path.parent
+        if parent == path:
             return None
-    return path
+        path = parent

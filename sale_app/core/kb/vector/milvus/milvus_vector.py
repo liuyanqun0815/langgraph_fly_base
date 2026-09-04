@@ -1,21 +1,24 @@
-import logging
-from typing import Any, Optional, Dict
+from typing import Any, Dict, List, Optional
 
-from langchain_milvus.retrievers import MilvusCollectionHybridSearchRetriever
-from langchain_milvus.vectorstores import Milvus
 from langchain_core.documents import Document
-from pymilvus import FieldSchema, DataType, CollectionSchema, Collection, connections, WeightedRanker
-from pymilvus.orm import utility
-from scipy.sparse import csr_array  # type: ignore
+from langchain_milvus.vectorstores import Milvus
+from pymilvus import (
+    AnnSearchRequest,
+    CollectionSchema,
+    DataType,
+    FieldSchema,
+    WeightedRanker,
+)
 
 from config import MilvusConfig
+from sale_app.config.log import Logger
 from sale_app.core.embedding.splade_embedding_model import SpladeEmbeddingModel
 from sale_app.core.kb.vector.fly_document import FlyDocument
+from sale_app.core.kb.vector.milvus.milvus_client_helper import build_milvus_client
 from sale_app.core.kb.vector.vector_base import BaseVector
 from sale_app.core.kb.vector.vector_factory import AbstractVectorFactory
 from sale_app.core.kb.vector.vector_type import VectorType
 from sale_app.core.moudel.zhipuai import ZhipuAI
-from sale_app.config.log import Logger
 
 splade_ef = SpladeEmbeddingModel()
 
@@ -29,13 +32,13 @@ class MilvusVector(BaseVector):
     PARTITION_KEY = "file_name"
     METADATA = "metadata"
 
-    def __init__(self, collection_name: str, config: MilvusConfig, partition_key: str = None, ):
+    def __init__(self, collection_name: str, config: MilvusConfig, partition_key: str = None):
         super().__init__(collection_name)
         self._config = config
+        self._client = build_milvus_client(config)
         zhipu = ZhipuAI()
         self._dimension = zhipu._embedding_dimensions
         self._embeddings = zhipu.embedding()
-        connections.connect(host=self._config.milvus_host, port=self._config.milvus_port)
         self._partition_key = partition_key
         self.milvus_store = self._init(config)
 
@@ -44,141 +47,157 @@ class MilvusVector(BaseVector):
             embedding_function=self._embeddings,
             connection_args={
                 "port": config.milvus_port,
-                "host": config.milvus_host
+                "host": config.milvus_host,
             },
             index_params={
                 "metric_type": "L2",
                 "index_type": "IVF_FLAT",
-                "params": {"nlist": 1024}
+                "params": {"nlist": 1024},
             },
             search_params={
                 "metric_type": "IP",
                 "params": {
-                    "nprobe": 64
-                }
+                    "nprobe": 64,
+                },
             },
             consistency_level="Session",
             collection_name=self._collection_name,
             vector_field=MilvusVector.DENSE_FIELD,
             text_field=MilvusVector.PAGE_CONTENT,
-
         )
 
     def get_type(self) -> str:
         return VectorType.MILVUS
 
-    def has_collection(self, collection_name: str):
-        return utility.has_collection(collection_name)
+    def has_collection(self, collection_name: str) -> bool:
+        return self._client.has_collection(collection_name)
 
     def create_collection(self, collection_name: str):
         self._collection_name = collection_name
+        if self._client.has_collection(collection_name):
+            logger.info("collection already exists")
+            return
+
         pk_field = "pk"
         fields = [
-            FieldSchema(name=pk_field, dtype=DataType.VARCHAR, is_primary=True, auto_id=True, max_length=100, ),
+            FieldSchema(name=pk_field, dtype=DataType.VARCHAR, is_primary=True, auto_id=True, max_length=100),
             FieldSchema(name=MilvusVector.DENSE_FIELD, dtype=DataType.FLOAT_VECTOR, dim=self._dimension),
             FieldSchema(name=MilvusVector.SPARSE_FIELD, dtype=DataType.SPARSE_FLOAT_VECTOR),
             FieldSchema(name=MilvusVector.PAGE_CONTENT, dtype=DataType.VARCHAR, max_length=65_535),
             FieldSchema(name=MilvusVector.PARTITION_KEY, dtype=DataType.VARCHAR, max_length=64),
             FieldSchema(name=MilvusVector.METADATA, dtype=DataType.JSON),
         ]
-
-        schema = CollectionSchema(fields=fields, enable_dynamic_field=False,
-                                  partition_key_field=MilvusVector.PARTITION_KEY)
-
-        from pymilvus import utility
-        if utility.has_collection(collection_name):
-            logger.info("collection already exists")
-            return
-        collection = Collection(
-            name=collection_name, schema=schema, consistency_level="Session"
+        schema = CollectionSchema(
+            fields=fields,
+            enable_dynamic_field=False,
+            partition_key_field=MilvusVector.PARTITION_KEY,
         )
 
-        dense_index = {"index_type": "IVF_FLAT", "metric_type": "IP", "params": {"nlist": 128}}
-        collection.create_index(MilvusVector.DENSE_FIELD, dense_index)
-        # 在索引过程中要删除的小向量值的比例。
-        sparse_index = {"index_type": "SPARSE_INVERTED_INDEX", "metric_type": "IP",
-                        "params": {"nlist": 128, "drop_ratio_build": 0.2}}
-        collection.create_index(MilvusVector.SPARSE_FIELD, sparse_index)
+        index_params = self._client.prepare_index_params()
+        index_params.add_index(
+            field_name=MilvusVector.DENSE_FIELD,
+            index_type="IVF_FLAT",
+            metric_type="IP",
+            params={"nlist": 128},
+        )
+        index_params.add_index(
+            field_name=MilvusVector.SPARSE_FIELD,
+            index_type="SPARSE_INVERTED_INDEX",
+            metric_type="IP",
+            params={"nlist": 128, "drop_ratio_build": 0.2},
+        )
+        index_params.add_index(field_name=MilvusVector.PARTITION_KEY, index_type="Trie")
 
-        collection.create_index(MilvusVector.PARTITION_KEY, {"index_type": "Trie"})
-        collection.flush()
+        self._client.create_collection(
+            collection_name=collection_name,
+            schema=schema,
+            index_params=index_params,
+            consistency_level="Session",
+        )
+        self._client.flush(collection_name)
 
     def add_documents(self, documents: list[Document]):
         self.milvus_store.from_documents(documents, self._embeddings, collection_name=self._collection_name)
 
-    def _sparse_to_dict(self, sparse_array: csr_array) -> Dict[int, float]:
-        row_indices, col_indices = sparse_array.nonzero()
-        non_zero_values = sparse_array.data
-        result_dict = {}
-        for col_index, value in zip(col_indices, non_zero_values):
-            result_dict[col_index] = value
-        return result_dict
-
     def hybrid_add_documents(self, documents: list[Document]):
         dense_embedding_func = self._embeddings
-        # sparse_embedding_func = BM25SparseEmbedding(language='zh', corpus=[doc.page_content for doc in documents])
         entities = []
         for doc in documents:
+            page_content = doc.page_content if isinstance(doc.page_content, str) else str(doc.page_content or "")
+            if not page_content.strip():
+                logger.info("跳过空文档片段")
+                continue
             entity = {
-                MilvusVector.DENSE_FIELD: dense_embedding_func.embed_documents([doc.page_content])[0],
-                MilvusVector.SPARSE_FIELD: splade_ef.embed_documents([doc.page_content])[0],
-                MilvusVector.PAGE_CONTENT: doc.page_content,
+                MilvusVector.DENSE_FIELD: dense_embedding_func.embed_documents([page_content])[0],
+                MilvusVector.SPARSE_FIELD: splade_ef.embed_documents([page_content])[0],
+                MilvusVector.PAGE_CONTENT: page_content,
                 MilvusVector.PARTITION_KEY: doc.metadata.get("file_name", ""),
                 MilvusVector.METADATA: doc.metadata,
             }
             entities.append(entity)
 
-        if self.has_collection(self._collection_name) is False:
+        if not entities:
+            logger.warning("无有效文档可入库，跳过插入")
+            return
+
+        if not self.has_collection(self._collection_name):
             self.create_collection(self._collection_name)
 
-        collection = Collection(
-            name=self._collection_name, consistency_level="Session"
-        )
-        collection.insert(entities)
-        collection.load()
+        self._client.insert(self._collection_name, entities)
+        self._client.load_collection(self._collection_name)
+
+    def _partition_filter(self, partition_key: Optional[str]) -> str:
+        if partition_key:
+            return f"{MilvusVector.PARTITION_KEY} like '%{partition_key}%'"
+        return ""
+
+    @staticmethod
+    def _hits_to_documents(hits: List[dict]) -> list[FlyDocument]:
+        docs = []
+        for hit in hits:
+            entity = hit.get("entity") or {}
+            docs.append(
+                FlyDocument(
+                    page_content=entity.get(MilvusVector.PAGE_CONTENT, ""),
+                    metadata=entity.get(MilvusVector.METADATA, {}),
+                    score=hit.get("distance", 0),
+                )
+            )
+        return docs
 
     def hybrid_search(self, query: str, **kwargs: Any) -> list[FlyDocument]:
         partition_key = kwargs.get("partition_key", self._partition_key)
-        logger.info(f"混合搜索，请求参数：{query},分区键内容:{partition_key}")
-        dense_embedding_func = self._embeddings
-        sparse_search_params = {"metric_type": "IP"}
-        dense_search_params = {"metric_type": "IP", "params": {}}
-        dense_field = "dense_vector"
-        sparse_field = "sparse_vector"
-        text_field = "page_content"
+        top_k = int(kwargs.get("top_k") or 3)
+        logger.info(f"混合搜索，请求参数：{query},分区键内容:{partition_key},top_k:{top_k}")
+        filter_expr = self._partition_filter(partition_key)
 
-        collection = Collection(
-            name=self._collection_name, consistency_level="Session"
+        dense_search_params = {"metric_type": "IP", "params": {}}
+        sparse_search_params = {"metric_type": "IP"}
+        dense_request = AnnSearchRequest(
+            data=[self._embeddings.embed_query(query)],
+            anns_field=MilvusVector.DENSE_FIELD,
+            param=dense_search_params,
+            limit=top_k,
+            expr=filter_expr or None,
         )
-        if partition_key is None or partition_key == "":
-            retriever = MilvusCollectionHybridSearchRetriever(
-                collection=collection,
-                rerank=WeightedRanker(0.8, 0.2),
-                anns_fields=[MilvusVector.DENSE_FIELD, MilvusVector.SPARSE_FIELD],
-                field_embeddings=[dense_embedding_func, splade_ef],
-                field_search_params=[dense_search_params, sparse_search_params],
-                top_k=3,
-                text_field=text_field,
-            )
-        else:
-            retriever = MilvusCollectionHybridSearchRetriever(
-                collection=collection,
-                rerank=WeightedRanker(0.8, 0.2),
-                anns_fields=[dense_field, sparse_field],
-                field_embeddings=[dense_embedding_func, splade_ef],
-                field_search_params=[dense_search_params, sparse_search_params],
-                top_k=3,
-                text_field=text_field,
-                field_exprs=[f"{MilvusVector.PARTITION_KEY} like '%{partition_key}%'"] * 2
-            )
-        results = retriever.invoke(query)
-        logger.info(f"混合搜索，返回内容：{results}")
-        docs = []
-        for result in results:
-            doc = FlyDocument(page_content=result.page_content,
-                              metadata=result.metadata,
-                              score=0)
-            docs.append(doc)
+        sparse_request = AnnSearchRequest(
+            data=[splade_ef.embed_query(query)],
+            anns_field=MilvusVector.SPARSE_FIELD,
+            param=sparse_search_params,
+            limit=top_k,
+            expr=filter_expr or None,
+        )
+
+        self._client.load_collection(self._collection_name)
+        results = self._client.hybrid_search(
+            collection_name=self._collection_name,
+            reqs=[dense_request, sparse_request],
+            ranker=WeightedRanker(0.8, 0.2),
+            limit=top_k,
+            output_fields=[MilvusVector.PAGE_CONTENT, MilvusVector.METADATA],
+        )
+        docs = self._hits_to_documents(results[0] if results else [])
+        logger.info(f"混合搜索，返回内容：{docs}")
         return docs
 
     def search_by_vector(self, query: str, **kwargs: Any) -> list[FlyDocument]:
@@ -200,62 +219,55 @@ class MilvusVector(BaseVector):
         docs = []
         logger.info(f"语义检索检索结果：{results}")
         for result in results:
-            doc = FlyDocument(page_content=result[0].page_content,
-                              metadata=result[0].metadata.get("metadata"),
-                              score=result[1])
+            doc = FlyDocument(
+                page_content=result[0].page_content,
+                metadata=result[0].metadata.get("metadata"),
+                score=result[1],
+            )
             docs.append(doc)
         return docs
 
     def search_by_keyword(self, query: str, **kwargs: Any) -> list[FlyDocument]:
         partition_key = kwargs.get("partition_key", self._partition_key)
-
-        collection = Collection(
-            name=self._collection_name, consistency_level="Session"
-        )
-
-        # 执行搜索，设置搜索参数，如查询的向量数（nprobe）、搜索的向量数（limit）等
         search_params = {
-            "metric_type": "IP",  # 使用 L2 距离作为相似度度量
-            "params": {"drop_ratio_search": 0.4},  # 查询向量中要忽略的最小值的比例。
-            "limit": 4,
+            "metric_type": "IP",
+            "params": {"drop_ratio_search": 0.4},
         }
         embedding = splade_ef.embed_query(query)
-        # 稀疏向量检索
-        if partition_key is None or partition_key == "":
-            results = collection.search(
-                data=[embedding],  # 查询向量
-                anns_field="sparse_vector",  # 稀疏向量字段名
-                param=search_params,  # 搜索参数
-                limit=3,  # 返回的向量个数
-                output_fields=["page_content", "metadata"]  # 返回的字段列表
-            )
-        else:
-            results = collection.search(
-                data=[embedding],  # 查询向量
-                anns_field="sparse_vector",  # 稀疏向量字段名
-                param=search_params,  # 搜索参数
-                limit=3,  # 返回的向量个数
-                output_fields=["page_content", "metadata"],  # 返回的字段列表
-                expr=f"{MilvusVector.PARTITION_KEY} like '%{partition_key}%'"
-            )
+        filter_expr = self._partition_filter(partition_key)
+
+        self._client.load_collection(self._collection_name)
+        results = self._client.search(
+            collection_name=self._collection_name,
+            data=[embedding],
+            anns_field=MilvusVector.SPARSE_FIELD,
+            search_params=search_params,
+            limit=3,
+            output_fields=[MilvusVector.PAGE_CONTENT, MilvusVector.METADATA],
+            filter=filter_expr,
+        )
+
         docs = []
-        for result in results:
-            for hit in result:
-                logger.info(f"hit: {hit}")
-                doc = FlyDocument(page_content=hit.fields['page_content'],
-                                  metadata=hit.fields['metadata'],
-                                  score=hit.distance)
-                docs.append(doc)
+        for hit in results[0] if results else []:
+            logger.info(f"hit: {hit}")
+            entity = hit.get("entity") or {}
+            docs.append(
+                FlyDocument(
+                    page_content=entity.get(MilvusVector.PAGE_CONTENT, ""),
+                    metadata=entity.get(MilvusVector.METADATA, {}),
+                    score=hit.get("distance", 0),
+                )
+            )
         return docs
 
 
 class MilvusVectorFactory(AbstractVectorFactory):
     def init_vector(self, collection_name: str = None, **kwargs) -> MilvusVector:
         if collection_name is None:
-            collection_name = 'milvus'
+            collection_name = "milvus"
 
         return MilvusVector(
             collection_name=collection_name,
             config=MilvusConfig(),
-            partition_key=kwargs.get("partition_key")
+            partition_key=kwargs.get("partition_key"),
         )

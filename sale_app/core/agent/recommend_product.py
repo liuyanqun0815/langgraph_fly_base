@@ -50,4 +50,10 @@ def recommend_node(state, agent, name):
     logger.info(f"{name}节点内容:{state}")
     result = agent.invoke(state)
     if result:
-        return {"messages": [AIMessage(content=result.content)], "product_list": result.content, "pre_node": name}
+        return {
+            "messages": [AIMessage(content=result.content)],
+            "product_list": result.content,
+            "pre_node": name,
+            "awaiting_conversion": True,
+            "awaiting_info_confirm": False,
+        }

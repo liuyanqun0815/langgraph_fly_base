@@ -1,3 +1,5 @@
+import config  # noqa: F401 — 必须最先加载 .env 并关闭 LangSmith tracing
+
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -15,9 +17,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    startup_chain()
+    await startup_chain()
     yield
-    shutdown_chain()
+    await shutdown_chain()
 
 
 app = FastAPI(title="langgraph_fly_base", lifespan=lifespan)

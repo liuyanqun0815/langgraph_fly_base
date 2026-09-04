@@ -1,26 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LangGraph Fly Base</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <title>{% block title %}LangGraph Fly Base{% endblock %}</title>
+    <link rel="stylesheet" href="/static/styles.css?v=3">
+    {% block extra_head %}{% endblock %}
 </head>
-<body>
-<nav>
-    <ul>
-        <li><a href="/api/chat">开始会话</a></li>
-        <li><a href="/kb/create_collection">创建知识库</a></li>
-        <li><a href="/kb/upload_file">上传文档</a></li>
-        <li><a href="/kb/search">召回测试</a></li>
-        <li><a href="http://localhost:8000/" target="_blank">Milvus管理页面链接</a></li>
-        <li><a href="https://smith.langchain.com/" target="_blank">LangSmith页面链接</a></li>
-    </ul>
-</nav>
+<body class="{% block body_class %}{% endblock %}">
+<header class="site-header">
+    <div class="site-header__inner">
+        <a class="brand" href="/api/chat">
+            <span class="brand__logo">LG</span>
+            <span>LangGraph Fly</span>
+        </a>
+        <nav class="site-nav" aria-label="主导航">
+            <ul>
+                {% set path = request.url.path %}
+                <li><a href="/api/chat" class="{% if path == '/api/chat' %}active{% endif %}">开始会话</a></li>
+                <li><a href="/kb/create_collection" class="{% if path == '/kb/create_collection' %}active{% endif %}">创建知识库</a></li>
+                <li><a href="/kb/upload_file" class="{% if path == '/kb/upload_file' %}active{% endif %}">上传文档</a></li>
+                <li><a href="/kb/search" class="{% if path == '/kb/search' %}active{% endif %}">召回测试</a></li>
+                <li><a href="http://localhost:8000/" target="_blank" rel="noopener" class="nav-external">Milvus</a></li>
+                <li><a href="https://smith.langchain.com/" target="_blank" rel="noopener" class="nav-external">LangSmith</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
 
-<div class="content">
-    {% block content %}
-    {% endblock %}
-</div>
+<main class="content {% block content_class %}{% endblock %}">
+    {% block content %}{% endblock %}
+</main>
+<script src="/static/form-submit.js?v=1"></script>
+{% block extra_scripts %}{% endblock %}
 </body>
 </html>

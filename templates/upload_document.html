@@ -1,50 +1,48 @@
 {% extends 'base.html' %}
 
-{% block content %}
-    <div class="form-container">
-        <h1>上传文件</h1>
-        <form id="upload_form" method="post" enctype="multipart/form-data" action="/kb/upload_file">
-            <label for="name">知识库名称：</label>
-            <input type="text" id="collection_name" name="collection_name" required>
-            <br><br>
-            <label for="upload_type">选择导入类型: </label>
-            <select name="upload_type" id="upload_type">
-                <option value="general">普通导入</option>
-                <option value="qa">QA问题导入</option>
-            </select><br><br>
+{% block title %}上传文档 · LangGraph Fly{% endblock %}
 
-            <input type="file" name="file">
-            <p id="file_type_info">允许的文件类型：PDF (.pdf), DOC (.doc), XLS (.xls), XLSX (.xlsx)</p>
-            <button type="submit">上传文件</button>
-        </form>
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1>上传文档</h1>
+        <p class="subtitle">将 PDF、Word、Excel 导入 Milvus 知识库</p>
     </div>
 
-    <script>
-        document.getElementById('upload_type').addEventListener('change', function () {
-            var uploadType = this.value;
-            var fileTypeInfo = document.getElementById('file_type_info');
-            if (uploadType === 'general') {
-                fileTypeInfo.textContent = '允许的文件类型：PDF (.pdf), DOC (.doc), XLS (.xls), XLSX (.xlsx)';
-            } else if (uploadType === 'qa') {
-                fileTypeInfo.textContent = '允许的文件类型：XLS (.xls), XLSX (.xlsx)';
-            }
-        });
-        document.getElementById('upload_form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            var formData = new FormData(this);
+    <div class="page-card card">
+        <div class="card__body">
+            <form id="upload_form" method="post" enctype="multipart/form-data" action="/kb/upload_file"
+                  class="form-grid" data-ajax-submit="true" data-on-success="alert">
+                <div class="form-field">
+                    <label for="collection_name">知识库名称</label>
+                    <input type="text" id="collection_name" name="collection_name" required placeholder="例如：loan_qa">
+                </div>
+                <div class="form-field">
+                    <label for="upload_type">导入类型</label>
+                    <select name="upload_type" id="upload_type">
+                        <option value="general">普通导入</option>
+                        <option value="qa">QA 问答导入</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="file">选择文件</label>
+                    <input type="file" id="file" name="file" required>
+                    <p class="hint" id="file_type_info">允许的文件类型：PDF (.pdf), DOC (.doc), XLS (.xls), XLSX (.xlsx)</p>
+                </div>
+                <button type="submit" class="btn btn--block" data-loading-text="上传中…">上传文件</button>
+            </form>
+        </div>
+    </div>
+</div>
 
-            fetch("/kb/upload_file", {
-                method: 'POST',
-                body: formData,
-            })
-            .then(response => response.text())
-            .then(data => {
-                alert(data);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('请求失败，请稍后重试');
-            });
-        });
-    </script>
+<script>
+    document.getElementById('upload_type').addEventListener('change', function () {
+        var fileTypeInfo = document.getElementById('file_type_info');
+        if (this.value === 'general') {
+            fileTypeInfo.textContent = '允许的文件类型：PDF (.pdf), DOC (.doc), XLS (.xls), XLSX (.xlsx)';
+        } else {
+            fileTypeInfo.textContent = '允许的文件类型：XLS (.xls), XLSX (.xlsx)';
+        }
+    });
+</script>
 {% endblock %}

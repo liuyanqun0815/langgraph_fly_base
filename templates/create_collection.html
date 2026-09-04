@@ -1,19 +1,28 @@
 {% extends 'base.html' %}
 
-{% block content %}
-    <h1>创建知识库</h1>
-    <div class="form-container">
-        <form id="upload_form" method="post" enctype="multipart/form-data" action="/kb/create_collection">
-            <label for="name">知识库名称：</label>
-            <input type="text" id="collection_name" name="collection_name" required>
+{% block title %}创建知识库 · LangGraph Fly{% endblock %}
 
-            <p id="file_type_info" style="font-size: smaller;">暂时仅支持创建知识库名称，后续支持属性、索引自定义</p>
-            <br><br>
-            <button type="submit">创建知识库</button>
-        </form>
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1>创建知识库</h1>
+        <p class="subtitle">在 Milvus 中新建向量集合</p>
     </div>
 
-    {% if message %}
-        <p>{{ message }}</p>
-    {% endif %}
+    <div class="page-card card">
+        <div class="card__body">
+            <form id="create_collection_form" method="post" enctype="multipart/form-data" action="/kb/create_collection" class="form-grid">
+                <div class="form-field">
+                    <label for="collection_name">知识库名称</label>
+                    <input type="text" id="collection_name" name="collection_name" required placeholder="例如：recommend_product">
+                    <p class="hint">暂时仅支持创建集合名称，后续支持属性与索引自定义</p>
+                </div>
+                <button type="submit" class="btn btn--block" data-loading-text="创建中…">创建知识库</button>
+            </form>
+            {% if message %}
+            <div class="alert alert--info">{{ message }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}

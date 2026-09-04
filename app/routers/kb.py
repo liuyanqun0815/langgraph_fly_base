@@ -34,10 +34,13 @@ async def upload_file_post(
     if not file.filename:
         return PlainTextResponse("excel_file is null", status_code=400)
     absolute_path = _save_upload(file)
-    if upload_type == "general":
-        KBService.parse(absolute_path)
-    else:
-        KBService.xlsx_qa_upload(absolute_path, collection_name)
+    try:
+        if upload_type == "general":
+            KBService.parse(absolute_path, collection_name)
+        else:
+            KBService.xlsx_qa_upload(absolute_path, collection_name)
+    except ValueError as exc:
+        return PlainTextResponse(str(exc), status_code=400)
     return PlainTextResponse("文件上传成功！")
 
 

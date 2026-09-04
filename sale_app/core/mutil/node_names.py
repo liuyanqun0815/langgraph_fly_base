@@ -4,6 +4,8 @@ class NextNode:
     CHAT = "闲聊经理"
     INTENT = "意图确认"
     GATHER = "信息收集"
+    CONFIRM = "信息确认"
     RECOMMEND = "产品推荐"
+    CONVERSION = "客户转化"
     QA = "产品解答专家"
     FINISH = "FINISH"

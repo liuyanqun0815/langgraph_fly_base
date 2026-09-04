@@ -1,33 +1,130 @@
 {% extends 'base.html' %}
 
+{% block title %}开始会话 · LangGraph Fly{% endblock %}
+{% block body_class %}is-chat{% endblock %}
+{% block content_class %}content--chat{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="/static/chat.css?v=6">
+{% endblock %}
+
 {% block content %}
-    <h1>开始会话</h1>
-    <form method="post" enctype="multipart/form-data">
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-        <p>
-            <label>sessionId:</label>
-            <input type="text" name="sessionId" value="{{ session_id }}">
-        </p>
-        <p>
-            <label>chat:</label>
-            <input type="text" name="chat" value="{{ chat }}">
-        </p>
-        <button type="submit">发送</button>
-    </form>
-    {% if data %}
-        <h3>{{ message }}</h3>
-        <div class="chat-results" id="chat-results">
-            <ul>
-                {% for result in data %}
-                    <li style="color: {% if result.type == 'human' %}orange{% else %}slategrey{% endif %}">
-                        {% if result.type == 'human' %}客户: {% endif %}
-                        {% if result.type == 'ai' %}AI机器人: {% endif %}
-                        {{ result.content }}
-                    </li>
-                {% else %}
-                    <li>没有找到搜索结果。</li>
-                {% endfor %}
-            </ul>
+<div class="chat-app" id="chat-app">
+    <!-- 左侧会话面板 -->
+    <aside class="chat-panel chat-panel--sidebar">
+        <div class="chat-panel__header">
+            <div class="chat-panel__brand">
+                <span class="chat-panel__brand-icon">✦</span>
+                <div>
+                    <h2 class="chat-panel__title">销售助手</h2>
+                    <p class="chat-panel__desc">LangGraph 多轮对话</p>
+                </div>
+            </div>
         </div>
-    {% endif %}
+
+        <form method="post" enctype="multipart/form-data" id="chat-form" class="chat-panel__body" data-no-submit-lock="true">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+            <div class="session-card">
+                <label class="field-label" for="sessionId">Session ID</label>
+                <div class="session-card__row">
+                    <input type="text" id="sessionId" name="sessionId" class="input input--mono"
+                           value="{{ session_id }}" placeholder="留空自动生成">
+                    <button type="button" class="icon-btn" id="copy-session" title="复制 Session ID" aria-label="复制">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>
+                </div>
+                <p class="field-hint">相同 ID 可延续上下文记忆</p>
+            </div>
+
+            {% if message %}
+            <div class="toast toast--success" role="status">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                {{ message }}
+            </div>
+            {% endif %}
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-section__title">快捷提问</h3>
+                <div class="prompt-chips">
+                    <button type="button" class="chip" data-prompt="我想申请贷款">我想申请贷款</button>
+                    <button type="button" class="chip" data-prompt="推荐适合我的产品">推荐适合我的产品</button>
+                    <button type="button" class="chip" data-prompt="贷款利率是多少">贷款利率是多少</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section sidebar-section--muted">
+                <h3 class="sidebar-section__title">能力说明</h3>
+                <ul class="feature-list">
+                    <li>信息收集 → 信息确认 → 产品推荐 → 客户转化</li>
+                    <li>知识库问答</li>
+                </ul>
+            </div>
+        </form>
+    </aside>
+
+    <!-- 右侧对话主区 -->
+    <section class="chat-panel chat-panel--main">
+        <header class="chat-topbar">
+            <div class="chat-topbar__left">
+                <span class="status-dot status-dot--online"></span>
+                <span class="chat-topbar__label">当前会话</span>
+                <code class="session-chip" id="session-display">{{ session_id or '等待开始' }}</code>
+            </div>
+            <div class="chat-topbar__right">
+                <span class="chat-topbar__meta">智能销售工作流</span>
+            </div>
+        </header>
+
+        <div class="chat-thread" id="chat-thread">
+            {% if data %}
+                <div class="chat-thread__inner">
+                    {% for result in data %}
+                    <article class="msg msg--{% if result.type == 'human' %}user{% else %}bot{% endif %}">
+                        <div class="msg__avatar" aria-hidden="true">
+                            {% if result.type == 'human' %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                            {% else %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/></svg>
+                            {% endif %}
+                        </div>
+                        <div class="msg__body">
+                            <div class="msg__card">
+                                <div class="msg__content">{{ result.content }}</div>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="chat-welcome">
+                    <div class="chat-welcome__icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <h2 class="chat-welcome__title">开始一段新对话</h2>
+                    <p class="chat-welcome__text">输入贷款咨询、产品推荐等问题，助手将引导您完成信息收集与推荐。</p>
+                    <div class="prompt-chips prompt-chips--center">
+                        <button type="button" class="chip chip--lg" data-prompt="我想申请贷款">我想申请贷款</button>
+                        <button type="button" class="chip chip--lg" data-prompt="有什么理财产品推荐">有什么理财产品推荐</button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <footer class="chat-composer">
+            <div class="composer-box">
+                <textarea name="chat" form="chat-form" id="chat-input" class="composer-box__input"
+                          rows="1" placeholder="输入消息，Enter 发送，Shift+Enter 换行…" required></textarea>
+                <button type="submit" form="chat-form" class="composer-box__send" id="chat-send" aria-label="发送">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                </button>
+            </div>
+            <p class="composer-hint">AI 生成内容仅供参考，重要决策请核实官方信息。</p>
+        </footer>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/chat.js?v=10"></script>
 {% endblock %}

@@ -1,5 +1,5 @@
 import langdetect
-from langchain.schema import runnable
+from langchain_core.runnables import RunnableLambda
 from langchain_experimental.data_anonymizer import PresidioReversibleAnonymizer
 
 
@@ -24,7 +24,7 @@ anonymizer = PresidioReversibleAnonymizer(
 # print(anonymizer.anonymize("Yo soy Sofía"))
 
 
-chain = runnable.RunnableLambda(detect_language) | (
+chain = RunnableLambda(detect_language) | (
     lambda x: anonymizer.anonymize(x["text"], language=x["language"])
 )
 

@@ -36,20 +36,14 @@ class WordExtractor(BaseExtractor):
 
         # 如果给定的路径不是本地文件且是一个有效的URL，则下载文件到临时位置并使用该临时文件。
         if not os.path.isfile(self.file_path) and self._is_valid_url(self.file_path):
-            r = requests.get(self.file_path)
+            r = requests.get(self.file_path, timeout=60)
+            if r.status_code != 200:
+                raise ValueError(f"请检查您的文件 URL；返回的状态码为 {r.status_code}")
 
-                    # 如果请求返回的状态码不是 200，则抛出带有错误信息的异常
-        if r.status_code != 200:
-            raise ValueError(
-                f"请检查您的文件 URL；返回的状态码为 {r.status_code}"
-            )
-
-            # 当文件下载成功后，更新文件路径，创建一个临时文件并将响应的内容写入其中
             self.web_path = self.file_path
             self.temp_file = tempfile.NamedTemporaryFile()
             self.temp_file.write(r.content)
             self.file_path = self.temp_file.name
-            # 如果提供的文件路径既不是有效的本地文件也不是有效的 URL，则抛出异常
         elif not os.path.isfile(self.file_path):
             raise ValueError(f"文件路径 {self.file_path} 不是有效的文件或 URL")
 

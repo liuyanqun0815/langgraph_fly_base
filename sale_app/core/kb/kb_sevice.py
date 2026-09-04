@@ -6,6 +6,7 @@ from langchain_core.documents import Document
 
 from config import get_env, recommend_collection_name
 from sale_app.config.log import Logger
+from sale_app.core.kb.loader.document_chunker import chunk_documents
 from sale_app.core.kb.loader.excel_extractor import ExcelExtractor
 from sale_app.core.kb.loader.excel_loader import xlsx_loader
 from sale_app.core.kb.loader.pdf_extractor import PdfExtractor
@@ -41,7 +42,7 @@ class KBService:
             extractor = WordExtractor(excel_file)
         else:
             raise ValueError("不支持的文件格式")
-        docs = extractor.extract()
+        docs = chunk_documents(extractor.extract())
         vector = Vector(collection_name=collection_name)
         vector.vector_processor.hybrid_add_documents(docs)
 
@@ -102,11 +103,14 @@ class KBService:
         return parsed_dict
 
     @classmethod
-    def hybrid_search(cls, query, collection_name: str | None = None, file_name: str = None):
+    def hybrid_search(cls, query, collection_name: str | None = None, file_name: str = None, top_k: int | None = None):
         if collection_name is None:
             collection_name = get_env("DEFAULT_KB_COLLECTION")
         vector = Vector(collection_name=collection_name, partition_key=file_name)
-        return vector.vector_processor.hybrid_search(query)
+        kwargs = {}
+        if top_k is not None:
+            kwargs["top_k"] = top_k
+        return vector.vector_processor.hybrid_search(query, **kwargs)
 
     @classmethod
     def keyword_search(cls, query: str, collection_name: str | None = None, file_name: str = None):

@@ -1,45 +1,61 @@
 {% extends 'base.html' %}
 
+{% block title %}召回测试 · LangGraph Fly{% endblock %}
+
 {% block content %}
-    <h1>知识库数据召回</h1>
-    <form method="post" enctype="multipart/form-data" action="/kb/search">
-        <p>
-            <label for="id_collection_name">集合名称:</label>
-            <input type="text" name="collection_name" id="id_collection_name" required>
-        </p>
-        <p>
-            <label for="id_query_type">查询类型:</label>
-            <select name="query_type" id="id_query_type" required>
-                <option value="vector">向量查询</option>
-                <option value="hybrid_search">混合查询</option>
-                <option value="keyword_search">关键字查询</option>
-            </select>
-        </p>
-        <p>
-            <label for="id_file_name">文件名称:</label>
-            <input type="text" name="file_name" id="id_file_name">
-        </p>
-        <p>
-            <label for="id_query">查询内容:</label>
-            <input type="text" name="query" id="id_query" required>
-        </p>
-        <button type="submit">查询</button>
-    </form>
+<div class="page">
+    <div class="page-header">
+        <h1>知识库召回测试</h1>
+        <p class="subtitle">验证向量检索、混合检索与关键字检索效果</p>
+    </div>
+
+    <div class="page-card page-card--wide card">
+        <div class="card__body">
+            <form method="post" enctype="multipart/form-data" action="/kb/search" class="form-grid">
+                <div class="form-field">
+                    <label for="id_collection_name">集合名称</label>
+                    <input type="text" name="collection_name" id="id_collection_name" required placeholder="loan_qa">
+                </div>
+                <div class="form-field">
+                    <label for="id_query_type">查询类型</label>
+                    <select name="query_type" id="id_query_type" required>
+                        <option value="vector">向量查询</option>
+                        <option value="hybrid_search">混合查询</option>
+                        <option value="keyword_search">关键字查询</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="id_file_name">文件名称（可选）</label>
+                    <input type="text" name="file_name" id="id_file_name" placeholder="按分区键过滤">
+                </div>
+                <div class="form-field">
+                    <label for="id_query">查询内容</label>
+                    <input type="text" name="query" id="id_query" required placeholder="输入检索问题">
+                </div>
+                <button type="submit" class="btn btn--block" data-loading-text="查询中…">开始查询</button>
+            </form>
+        </div>
+    </div>
 
     {% if response %}
-        <div class="search-results" id="search-results">
-            <h3>{{ response.message }}</h3>
-            <ul>
-                {% for result in response.results %}
-                    <li>
-                        <strong>评分:</strong> {{ result.score }}<br>
-                        <strong>元数据:</strong> {{ result.metadata }}<br>
-                        <strong>详情:</strong> {{ result.page_content }}
-                    </li>
-                {% else %}
-                    <li>没有找到搜索结果。</li>
-                {% endfor %}
-            </ul>
+    <div class="search-results page-card--wide">
+        <div class="page-header" style="margin-top: 1.5rem;">
+            <h1 style="font-size: 1.15rem;">{{ response.message }}</h1>
         </div>
+        <ul class="result-list">
+            {% for result in response.results %}
+            <li class="result-item">
+                <span class="result-item__score">评分 {{ result.score }}</span>
+                <div class="result-item__meta">元数据：{{ result.metadata }}</div>
+                <div class="result-item__content">{{ result.page_content }}</div>
+            </li>
+            {% else %}
+            <li class="result-item">
+                <div class="result-item__content">没有找到搜索结果。</div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
     {% endif %}
+</div>
 {% endblock %}

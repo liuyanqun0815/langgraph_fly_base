@@ -36,12 +36,5 @@ class Vector:
             case VectorType.MILVUS:
                 from sale_app.core.kb.vector.milvus.milvus_vector import MilvusVectorFactory
                 return MilvusVectorFactory
-            # case VectorType.QDRANT:
-            #     return QdrantVectorFactory
-            # case VectorType.WEAVIATE:
-            #     return WeaviateVectorFactory
             case _:
-                raise ValueError(
-                    f"不支持的向量存储类型: {vector_type}。"
-                    f"当前仅实现 milvus；qdrant/weaviate 代码保留但未启用。"
-                )
+                raise ValueError(f"不支持的向量存储类型: {vector_type}。当前仅支持 milvus。")

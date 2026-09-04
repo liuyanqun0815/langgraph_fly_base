@@ -32,21 +32,28 @@ from pydantic import BaseModel, Field
 
 tagging_prompt = ChatPromptTemplate.from_template(
     """
-从以下段落中提取所需的信息。
-必须提取“Classification”功能中提到的属性。
+# 任务
+对用户输入进行安全与合规分类，提取 Classification 模型所需的全部字段。
 
-输入内容：
+# 评分与判断要求
+- isPublicSafety：1～8 分，分数越高表示危害公共安全或低俗恶俗程度越高；≥4 视为需拦截。
+- 其余布尔字段：仅当内容 **明确符合** 字段描述时为 true，不确定时为 false。
+- 不要过度敏感，正常的贷款业务咨询不应误判。
+
+# 用户输入
 {input}
+
+请输出结构化 Classification 结果。
 """
 )
 
 tip = {
-    "isPublicSafety": "文本描述危害公共安全或恶俗的言论",
-    "isPolitical": "文本内容涉及法律或政治敏感",
-    "isReligiousConflict": "文本内容涉及宗教冲突或文化不适的话题",
-    "isProgram": "文本内容存在编程代码、函数方法相关",
-    "isTranslate": "文本内容涉及翻译，例如，你好翻译成英文，你好翻译成韩语等",
-    "isContentCreation": "文本内容涉及内容创作，例如写一篇论文，写一首诗等",
+    "isPublicSafety": "含暴力威胁、极端言论、色情低俗、人身攻击等危害公共安全或恶俗内容",
+    "isPolitical": "涉及敏感政治话题、煽动对立或不当政治言论",
+    "isReligiousConflict": "涉及宗教冲突、歧视或可能引发文化对立的内容",
+    "isProgram": "以编写/调试代码、函数、脚本为主要诉求（非业务咨询）",
+    "isTranslate": "主要诉求为语言翻译（如「你好翻译成英文」）",
+    "isContentCreation": "主要诉求为代写长文、论文、诗歌等创作任务",
 }
 
 
