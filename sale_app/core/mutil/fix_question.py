@@ -3,7 +3,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.runnables import RunnablePassthrough
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 
 from sale_app.core.prompt.chat_manager_prompt import CONTEXTUALIZE_Q_SYSTEM_PROMPT
 from sale_app.util.history_formate import format_docs

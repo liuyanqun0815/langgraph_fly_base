@@ -26,7 +26,9 @@ def pre_handle(question: str) -> str | None:
 
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.pydantic_v1 import BaseModel, Field
+from typing import Literal
+
+from pydantic import BaseModel, Field
 
 tagging_prompt = ChatPromptTemplate.from_template(
     """
@@ -49,32 +51,17 @@ tip = {
 
 
 class Classification(BaseModel):
-    isPublicSafety: int = Field(
+    isPublicSafety: Literal[1, 2, 3, 4, 5, 6, 7, 8] = Field(
         default=1,
         description="文本描述是否危害公共安全或恶俗的言论，数字越高，越危险",
-        enum=[1, 2, 3, 4, 5, 6, 7, 8],
     )
-    isPolitical: bool = Field(description=tip["isPolitical"],
-                              default=False,
-                              enum=[True, False])
-    isProgram: bool = Field(description=tip["isProgram"],
-                            default=False,
-                            enum=[True, False])
-    isTranslate: bool = Field(description=tip["isTranslate"],
-                              default=False,
-                              enum=[True, False])
-    isReligiousConflict: bool = Field(description=tip["isReligiousConflict"],
-                                     default=False,
-                                     enum=[True, False])
-    isContentCreation: bool = Field(description=tip["isContentCreation"],
-                                    default=False,
-                                    enum=[True, False])
-    isSpecialSymbols: bool = Field(description="文本内容是否带'{'、'['、'('、')'、等符号",
-                                   default=False,
-                                   enum=[True, False])
-    isHtmlSymbols: bool = Field(description="文本内容是否带html标签信息",
-                                default=False,
-                                enum=[True, False])
+    isPolitical: bool = Field(description=tip["isPolitical"], default=False)
+    isProgram: bool = Field(description=tip["isProgram"], default=False)
+    isTranslate: bool = Field(description=tip["isTranslate"], default=False)
+    isReligiousConflict: bool = Field(description=tip["isReligiousConflict"], default=False)
+    isContentCreation: bool = Field(description=tip["isContentCreation"], default=False)
+    isSpecialSymbols: bool = Field(description="文本内容是否带'{'、'['、'('、')'、等符号", default=False)
+    isHtmlSymbols: bool = Field(description="文本内容是否带html标签信息", default=False)
 
 
 def cicile_attribute(obj: Classification) -> str | None:
