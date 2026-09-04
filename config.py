@@ -25,7 +25,9 @@ DEFAULTS = {
     'QDRANT_COLLECTION_NAME': 'sale_app',
     'QDRANT_VECTOR_DIMENSIONS': 1024,
 
-    'SERVICE_API_URL': 'http://127.0.0.1:8000'
+    'SERVICE_API_URL': 'http://127.0.0.1:8000',
+    'APP_SECRET_KEY': 'dev-only-change-me',
+    'DATABASE_URL': 'sqlite:///./db.sqlite3',
 }
 
 
@@ -64,3 +66,7 @@ def get_env(key):
 
 def recommend_collection_name():
     return get_env('RECOMMEND_COLLECTION_NAME')
+
+
+def app_secret_key():
+    return get_env('APP_SECRET_KEY') or get_env('DJANGO_SECRET_KEY')

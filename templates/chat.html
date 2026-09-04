@@ -3,28 +3,31 @@
 {% block content %}
     <h1>开始会话</h1>
     <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type=" submit">发送</button>
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <p>
+            <label>sessionId:</label>
+            <input type="text" name="sessionId" value="{{ session_id }}">
+        </p>
+        <p>
+            <label>chat:</label>
+            <input type="text" name="chat" value="{{ chat }}">
+        </p>
+        <button type="submit">发送</button>
     </form>
-
     {% if data %}
         <h3>{{ message }}</h3>
-        <label>
-            <div class="chat-results" id="chat-results">
-                <ul>
-                    {% for result in data %}
-                        <li style="color: {% if result.type == 'human' %}orange{% else %}slategrey{% endif %}">
-                            {% if result.type == 'human' %}客户: {% endif %}
-                            {% if result.type == 'ai' %}AI机器人: {% endif %}
-                            {{ result.content }}
-                        </li>
-                    {% empty %}
-                        <li>没有找到搜索结果。</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </label>
-
+        <div class="chat-results" id="chat-results">
+            <ul>
+                {% for result in data %}
+                    <li style="color: {% if result.type == 'human' %}orange{% else %}slategrey{% endif %}">
+                        {% if result.type == 'human' %}客户: {% endif %}
+                        {% if result.type == 'ai' %}AI机器人: {% endif %}
+                        {{ result.content }}
+                    </li>
+                {% else %}
+                    <li>没有找到搜索结果。</li>
+                {% endfor %}
+            </ul>
+        </div>
     {% endif %}
 {% endblock %}
