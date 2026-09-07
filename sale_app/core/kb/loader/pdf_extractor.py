@@ -17,8 +17,8 @@ class PdfExtractor(BaseExtractor):
     """
 
     def __init__(
-            self,
-            file_path: str,
+        self,
+        file_path: str,
     ):
         """使用文件路径初始化PdfExtractor。
 
@@ -41,7 +41,7 @@ class PdfExtractor(BaseExtractor):
         return documents
 
     def load(
-            self,
+        self,
     ) -> Iterator[Document]:
         """惰性加载指定路径的PDF文件为页面。
 
@@ -65,17 +65,22 @@ class PdfExtractor(BaseExtractor):
             一个生成器，每个生成的Document对象包含从blob中提取的一页PDF内容。
         """
         import pypdfium2
-        file_name = os.path.basename(self._file_path).split('.')[0]
+
+        file_name = os.path.basename(self._file_path).split(".")[0]
 
         with blob.as_bytes_io() as file_path:
             pdf_reader = pypdfium2.PdfDocument(file_path, autoclose=True)
             try:
                 for page_number, page in enumerate(pdf_reader):
                     text_page = page.get_textpage()
-                    content = text_page.get_text_range()
-                    text_page.close()
-                    page.close()
-                    metadata = {"source": blob.source, "page": page_number, 'file_name': file_name}
+                    try:
+                        content = text_page.get_text_range() or ""
+                    finally:
+                        text_page.close()
+                        page.close()
+                    if not content.strip():
+                        continue
+                    metadata = {"source": blob.source, "page": page_number, "file_name": file_name}
                     yield Document(page_content=content, metadata=metadata)
             finally:
                 pdf_reader.close()
