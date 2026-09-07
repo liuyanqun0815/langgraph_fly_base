@@ -1,3 +1,9 @@
+# 已合并至项目根目录 docker-compose.yml，请优先使用：
+#   docker compose up -d --build
+#
+# 若仅需 Milvus 栈：
+#   docker compose up -d etcd minio milvus attu
+
 version: '3.5'
 
 services:

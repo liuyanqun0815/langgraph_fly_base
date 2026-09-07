@@ -1,0 +1,15 @@
+.git
+.worktrees
+.idea
+.pytest_cache
+__pycache__
+*.py[cod]
+.env
+.env.local
+storage/
+load_model/
+docker/volumes/
+db.sqlite3
+docs/superpowers/
+*.md
+!README.md

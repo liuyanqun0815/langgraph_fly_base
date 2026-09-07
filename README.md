@@ -29,7 +29,7 @@
 - **客户转化**：推荐后引导留资/预约，输出客服电话与网点提示。
 - **敏感信息**：Presidio 脱敏仅在信息收集阶段生效，其他节点不脱敏。
 
-架构图见 `docs/langchain_all.drawio.png`、`docs/grap.png`、`docs/recommend.png`。
+架构图见 ![langchain_all.drawio.png](docs/langchain_all.drawio.png)、![grap.png](docs/grap.png)、![recommend.png](docs/recommend.png)。
 
 ## 目录结构（核心）
 
@@ -87,12 +87,41 @@ Milvus 可视化（Attu 等）：
 
 ## 快速开始
 
-### 1. 环境
+### 方式 A：Docker Compose 一键启动（推荐）
+
+```bash
+cp .env.example .env
+# 编辑 .env，至少填写 LLM_API_KEY（或 ZHIPU_API_KEY）
+
+docker compose up -d --build
+```
+
+| 服务 | 地址 |
+|------|------|
+| 聊天 | http://127.0.0.1:8182/api/chat |
+| 知识库 | http://127.0.0.1:8182/kb/upload_file |
+| 健康检查 | http://127.0.0.1:8182/health |
+| Milvus Attu | http://127.0.0.1:8001 |
+| Milvus gRPC | localhost:19530 |
+
+常用命令：
+
+```bash
+docker compose logs -f app      # 查看应用日志
+docker compose down             # 停止全部服务
+docker compose up -d etcd minio milvus attu   # 仅启动 Milvus 栈（本地跑 app）
+```
+
+> Docker 内 `app` 服务自动设置 `MILVUS_HOST=milvus`；本地直跑 uvicorn 时仍用 `MILVUS_HOST=localhost`。
+
+### 方式 B：本地 Python 启动
+
+#### 1. 环境
 
 - Python **3.10** 或 **3.11** 推荐
-- 已安装并启动 **Milvus**（见 `docker/` 下 compose）
+- 已安装并启动 **Milvus**（`docker compose up -d etcd minio milvus attu` 或见根目录 `docker-compose.yml`）
 
-### 2. 安装依赖
+#### 2. 安装依赖
 
 ```bash
 pip install -r requirements.txt
@@ -100,7 +129,7 @@ pip install -r requirements.txt
 pip install langchain-zhipu==4.1.8 --no-deps
 ```
 
-### 3. 配置环境变量
+#### 3. 配置环境变量
 
 ```bash
 cp .env.example .env
@@ -139,7 +168,7 @@ OFFLINE_BRANCH_HINT=请携带身份证及相关材料前往就近网点办理
 
 完整说明见 [.env.example](.env.example)。
 
-### 4. 初始化数据
+#### 4. 初始化数据
 
 ```bash
 # 首次升级 LangGraph 1.x 后建议删除旧 checkpoint（Windows）
@@ -149,7 +178,7 @@ del storage\memory_file\chat_history.db
 python import_data_to_sqlite.py
 ```
 
-### 5. 启动服务
+#### 5. 启动服务
 
 ```bash
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
@@ -162,14 +191,6 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 - 聊天：http://127.0.0.1:8000/api/chat
 - 知识库：http://127.0.0.1:8000/kb/upload_file
 - 健康检查：http://127.0.0.1:8000/health
-
-## 测试
-
-```bash
-pytest tests/ -q
-# 或按模块：
-pytest tests/test_decide_router.py tests/test_information_confirm.py tests/test_customer_conversion.py -q
-```
 
 ## 向量数据库说明
 
