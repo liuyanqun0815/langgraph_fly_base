@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "langgraph_fly_base"
+type: software
+authors:
+  - family-names: liuyanqun
+    email: 1163866926@qq.com
+repository-code: "https://github.com/liuyanqun0815/langgraph_fly_base"
+url: "https://github.com/liuyanqun0815/langgraph_fly_base"
+abstract: >-
+  LangGraph 1.x based intelligent loan sales customer-service workflow
+  with multi-turn dialogue, knowledge-base RAG, dual-collection product
+  recommendation, information confirmation, and customer conversion.
+license: Apache-2.0
+version: "1.0.0"
+date-released: "2026-09-20"

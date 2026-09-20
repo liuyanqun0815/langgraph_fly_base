@@ -2,7 +2,17 @@
 
 基于 **LangGraph 1.x** 的智能贷款销售客服工作流：多轮对话、知识库 RAG、双库并行产品推荐、信息确认与客户转化。
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 [大模型学习记录](https://juejin.cn/column/7379059739118878732)
+
+## 作者与许可证
+
+- **作者 / 版权人**：liuyanqun（[GitHub](https://github.com/liuyanqun0815)）
+- **许可证**：[Apache License 2.0](LICENSE)
+- **署名与 NOTICE**：再分发或二次开发时须保留本项目的版权与许可声明，并遵守 `NOTICE` 中的归属要求
+- **Fork / 二创说明**：公开衍生仓库请在 README 中注明「基于 [langgraph_fly_base](https://github.com/liuyanqun0815/langgraph_fly_base)」，不得删除本仓库的版权与许可证信息，亦不得将本项目宣传为他人原创
+- **引用**：见根目录 [CITATION.cff](CITATION.cff)
 
 ## 技术栈
 
